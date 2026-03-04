@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Status Dashboard — FullSpeed Automotive</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --red:       #C8102E;
+  --red-light: #f9e6e9;
+  --red-mid:   #f0b3bc;
+
+  --bg:        #f4f5f7;
+  --white:     #ffffff;
+  --surface:   #ffffff;
+  --border:    #e3e6eb;
+  --border2:   #d0d4db;
+
+  --text:      #1a1d23;
+  --text2:     #3d4350;
+  --muted:     #7a8194;
+  --muted2:    #b0b7c3;
+
+  --blue:      #1d6fb8;
+  --blue-lt:   #e8f1fb;
+  --green:     #1a7a52;
+  --green-lt:  #e6f4ed;
+  --amber:     #b45309;
+  --amber-lt:  #fef3e2;
+  --purple:    #5b4fcf;
+  --purple-lt: #eeedfb;
+  --teal:      #0d7c74;
+  --teal-lt:   #e5f5f4;
+  --orange:    #c2530a;
+  --orange-lt: #fdf0e8;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:    0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: stretch;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-accent {
+  width: 4px;
+  background: var(--red);
+  margin: 10px 0;
+  border-radius: 2px;
+  margin-right: 18px;
+  flex-shrink: 0;
+  align-self: stretch;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.header-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  padding: 14px 0;
+}
+.header-left h1 {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.header-left h1 span { color: var(--red); }
+.header-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 400;
+}
+.header-badge {
+  background: var(--red-light);
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--red-mid);
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.flabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-right: 2px;
+}
+.pill-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  transition: all 0.12s;
+}
+.pill:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.pill.active  { background: var(--red); color: #fff; border-color: var(--red); font-weight: 600; }
+.pill.active-b { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+.pill.active-p { background: var(--purple); color: #fff; border-color: var(--purple); font-weight: 600; }
+.fdiv { width: 1px; height: 20px; background: var(--border2); margin: 0 6px; }
+
+/* ── MAIN LAYOUT ── */
+main { padding: 24px 32px; display: grid; gap: 20px; max-width: 1600px; }
+
+/* ── SECTION HEADER ── */
+.sh {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sh-dot {
+  width: 8px; height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sh::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
+.kpi {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.kpi-color-bar {
+  position: absolute;
+  left: 0; top: 12px; bottom: 12px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+.kpi-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.kpi-val {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.kpi-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.ctitle {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.csub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.three-col { display: grid; grid-template-columns: 5fr 3fr; gap: 18px; }
+
+/* ── STATUS BARS ── */
+.sbars { display: flex; flex-direction: column; gap: 9px; }
+.srow  { display: grid; grid-template-columns: 152px 1fr 88px; align-items: center; gap: 10px; }
+.sname {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btrack { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.bfill  { height: 100%; border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.sval   { font-size: 12px; font-weight: 600; color: var(--text); text-align: right; line-height: 1.3; }
+.sn     { display: block; font-size: 10px; color: var(--muted); font-weight: 400; }
+
+/* ── SORT CONTROL ── */
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.sort-btn {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sort-btn.active {
+  background: var(--red-light);
+  border-color: var(--red-mid);
+  color: var(--red);
+  font-weight: 600;
+}
+.sort-arrow { font-size: 10px; }
+
+/* ── TRANSITIONS ── */
+.tlist { display: flex; flex-direction: column; }
+.trow {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+.trow:last-child { border-bottom: none; }
+.tfrom { font-size: 12px; font-weight: 600; color: var(--text); padding-top: 1px; }
+.ttos  { display: flex; flex-direction: column; gap: 4px; }
+.tto   { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+.tbar  { height: 4px; border-radius: 2px; min-width: 4px; opacity: 0.8; }
+.tcnt  { color: var(--muted); font-size: 10px; min-width: 24px; text-align: right; font-weight: 500; }
+
+/* ── TABLE ── */
+.tscroll { overflow-y: auto; max-height: 400px; }
+.tscroll::-webkit-scrollbar { width: 4px; }
+.tscroll::-webkit-scrollbar-track { background: var(--bg); }
+.tscroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 10px 10px;
+  text-align: left;
+  position: sticky; top: 0;
+  background: var(--white);
+  z-index: 2;
+  border-bottom: 1px solid var(--border2);
+}
+thead th.r { text-align: right; }
+tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+tbody tr:hover { background: #fafbfc; }
+tbody tr:last-child { border-bottom: none; }
+td { padding: 9px 10px; font-size: 12px; color: var(--text2); vertical-align: middle; }
+td.iname {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+td.itotal {
+  text-align: right;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  white-space: nowrap;
+}
+.gtag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.mtag { font-size: 11px; color: var(--muted); }
+.sparkrow { display: flex; gap: 2px; align-items: flex-end; }
+.spark    { border-radius: 1px; min-width: 4px; opacity: 0.85; }
+.chart-wrap canvas { max-height: 220px; }
+
+/* ── DETAIL PANEL ── */
+#panel {
+  display: none;
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 400px;
+  background: var(--white);
+  border-left: 1px solid var(--border2);
+  z-index: 200;
+  padding: 24px 22px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+#panel.open { display: block; animation: si 0.18s ease; }
+@keyframes si { from { transform: translateX(24px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+.pclose {
+  position: absolute; top: 16px; right: 16px;
+  background: var(--bg); border: 1px solid var(--border2);
+  color: var(--muted); width: 26px; height: 26px;
+  border-radius: 5px; cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pclose:hover { background: var(--red-light); color: var(--red); border-color: var(--red-mid); }
+.pname { font-family: 'Inter Tight', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.4; padding-right: 36px; margin-bottom: 6px; }
+.pmeta { font-size: 11px; color: var(--muted); margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+.psec {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin: 18px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.psec::after { content: ''; flex:1; height:1px; background: var(--border); }
+.pbars { display: flex; flex-direction: column; gap: 8px; }
+.pbrow { display: grid; grid-template-columns: 130px 1fr 78px; align-items: center; gap: 8px; }
+.pbname { font-size: 11px; font-weight: 500; color: var(--text2); text-align: right; }
+.pbval  { font-size: 12px; font-weight: 700; text-align: right; }
+.ptotal {
+  margin-top: 16px; padding: 12px 14px; background: var(--red-light);
+  border-radius: 6px; border-left: 3px solid var(--red);
+  font-size: 12px; color: var(--text2);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ptotal strong { font-family: 'Inter Tight', sans-serif; font-size: 17px; font-weight: 800; color: var(--red); }
+
+.no-r { font-size: 12px; color: var(--muted); text-align: center; padding: 28px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-accent"></div>
+  <div class="header-body">
+    <div class="header-left">
+      <h1>FullSpeed <span>Automotive</span> · Campaign Status Dashboard</h1>
+      <div class="header-sub">Change to the Monkey Refresh &nbsp;·&nbsp; Marketing Leadership &nbsp;·&nbsp; Status Time Analysis</div>
+    </div>
+    <div class="header-badge">Marketing Leadership</div>
+  </div>
+</header>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="flabel">Group</span>
+  <div class="pill-group" id="group-pills">
+    <button class="pill active" data-group="all">All Groups</button>
+    <button class="pill" data-group="Creative Production">Creative Production</button>
+    <button class="pill" data-group="Creative Queue (Up Next)">Creative Queue (Up Next)</button>
+    <button class="pill" data-group="Tactical Plans Sandbox">Tactical Plans Sandbox</button>
+  </div>
+  <div class="fdiv"></div>
+  <span class="flabel">Month</span>
+  <div class="pill-group" id="month-pills">
+    <button class="pill active-b" data-month="all">All Months</button>
+    <button class="pill" data-month="December">December</button>
+    <button class="pill" data-month="January">January</button>
+    <button class="pill" data-month="February">February</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- KPIs -->
+  <div>
+    <div class="sh"><div class="sh-dot"></div>Overview</div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-color-bar" style="background:var(--red)"></div>
+        <div class="kpi-lbl">Items Tracked</div>
+        <div class="kpi-val" style="color:var(--red)" id="kv-items">—</div>
+        <div class="kpi-sub" id="ks-items">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-color-bar" style="background:var(--blue)"></div>
+        <div class="kpi-lbl">Avg in Creative Queue</div>
+        <div class="kpi-val" style="color:var(--blue)" id="kv-queue">—</div>
+        <div class="kpi-sub">Largest pre-production stage</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-color-bar" style="background:var(--amber)"></div>
+        <div class="kpi-lbl">Avg Time Stuck</div>
+        <div class="kpi-val" style="color:var(--amber)" id="kv-stuck">—</div>
+        <div class="kpi-sub" id="ks-stuck">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-color-bar" style="background:var(--purple)"></div>
+        <div class="kpi-lbl">Avg Ready for Review</div>
+        <div class="kpi-val" style="color:var(--purple)" id="kv-rfr">—</div>
+        <div class="kpi-sub" id="ks-rfr">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-color-bar" style="background:var(--green)"></div>
+        <div class="kpi-lbl">Avg Time to Approve</div>
+        <div class="kpi-val" style="color:var(--green)" id="kv-approve">—</div>
+        <div class="kpi-sub">Once in review</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS ROLLUP + MONTH TREND -->
+  <div>
+    <div class="sh"><div class="sh-dot"></div>Status Time Rollup</div>
+    <div class="three-col">
+      <div class="card">
+        <div class="ctitle">Average Time Per Status</div>
+        <div class="csub">Cumulative per item — re-entries to prior statuses treated as additive</div>
+        <div class="sort-control">
+          <span style="font-size:11px;color:var(--muted);font-weight:500;">Sort:</span>
+          <button class="sort-btn" id="sort-asc" onclick="setSort('asc')">
+            <span class="sort-arrow">↑</span> Workflow Order
+          </button>
+          <button class="sort-btn active" id="sort-desc" onclick="setSort('desc')">
+            <span class="sort-arrow">↓</span> Highest Avg First
+          </button>
+        </div>
+        <div class="sbars" id="overall-bars"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">Avg Time by Month</div>
+        <div class="csub">Top statuses tracked across months</div>
+        <div class="chart-wrap"><canvas id="month-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUP COMPARISON -->
+  <div>
+    <div class="sh"><div class="sh-dot"></div>Group Comparison</div>
+    <div class="card">
+      <div class="ctitle">Avg Time Per Status by Group</div>
+      <div class="csub">Responds to group &amp; month filters above</div>
+      <div class="chart-wrap"><canvas id="group-chart" style="max-height:240px;"></canvas></div>
+    </div>
+  </div>
+
+  <!-- FLOW + ITEMS -->
+  <div class="two-col">
+    <div class="card">
+      <div class="ctitle">Status Transition Flow</div>
+      <div class="csub">Most common paths between statuses</div>
+      <div class="tlist" id="trans-list"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Items by Total Time</div>
+      <div class="csub">Click any row for status breakdown &nbsp;·&nbsp; <span id="item-count">—</span></div>
+      <div class="tscroll">
+        <table>
+          <thead><tr>
+            <th>Item</th><th>Group</th><th>Month</th><th>Breakdown</th><th class="r">Total</th>
+          </tr></thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- DETAIL PANEL -->
+<div id="panel">
+  <button class="pclose" onclick="closePanel()">✕</button>
+  <div id="panel-content"></div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const RAW = {"overall_avg":{"New":{"avg_hours":47.89,"n":7},"Creative Queue":{"avg_hours":306.18,"n":56},"Ready for Creative":{"avg_hours":146.4,"n":64},"Working on it":{"avg_hours":48.32,"n":55},"Ready for Review":{"avg_hours":50.57,"n":47},"Channel Approval":{"avg_hours":68.03,"n":50},"Changes Required":{"avg_hours":37.98,"n":28},"Approved":{"avg_hours":9.2,"n":30},"Delivered":{"avg_hours":61.82,"n":8},"EXTERNAL":{"avg_hours":75.71,"n":5},"Stuck":{"avg_hours":104.16,"n":12}},"group_avgs":{"Creative Queue (Up Next)":{"Creative Queue":{"avg_hours":641.27,"n":25},"Ready for Creative":{"avg_hours":115.98,"n":21},"Working on it":{"avg_hours":42.81,"n":19},"Ready for Review":{"avg_hours":51.43,"n":14},"Changes Required":{"avg_hours":8.05,"n":4},"Approved":{"avg_hours":13.82,"n":9},"Delivered":{"avg_hours":78.02,"n":2},"EXTERNAL":{"avg_hours":29.55,"n":1},"Stuck":{"avg_hours":47.73,"n":6}},"Creative Production":{"Creative Queue":{"avg_hours":0.0,"n":1},"Ready for Creative":{"avg_hours":213.83,"n":16},"Working on it":{"avg_hours":50.52,"n":20},"Ready for Review":{"avg_hours":56.72,"n":20},"Changes Required":{"avg_hours":21.17,"n":12},"Approved":{"avg_hours":5.83,"n":13},"Delivered":{"avg_hours":63.08,"n":2},"Stuck":{"avg_hours":183.9,"n":5}},"Tactical Plans Sandbox":{"New":{"avg_hours":47.89,"n":7},"Creative Queue":{"avg_hours":37.12,"n":30},"Ready for Creative":{"avg_hours":130.18,"n":27},"Working on it":{"avg_hours":52.22,"n":16},"Ready for Review":{"avg_hours":40.47,"n":13},"Channel Approval":{"avg_hours":68.03,"n":50},"Changes Required":{"avg_hours":64.7,"n":12},"Approved":{"avg_hours":9.49,"n":8},"Delivered":{"avg_hours":53.08,"n":4},"EXTERNAL":{"avg_hours":87.18,"n":4},"Stuck":{"avg_hours":44.37,"n":1}}},"month_avgs":{"December":{"New":{"avg_hours":47.89,"n":7},"Creative Queue":{"avg_hours":41.13,"n":27},"Ready for Creative":{"avg_hours":134.28,"n":26},"Working on it":{"avg_hours":52.1,"n":16},"Ready for Review":{"avg_hours":40.18,"n":13},"Channel Approval":{"avg_hours":66.13,"n":47},"Changes Required":{"avg_hours":66.31,"n":12},"Approved":{"avg_hours":9.49,"n":8},"Delivered":{"avg_hours":71.41,"n":4},"EXTERNAL":{"avg_hours":87.18,"n":4},"Stuck":{"avg_hours":44.37,"n":1}},"January":{"Creative Queue":{"avg_hours":506.67,"n":27},"Ready for Creative":{"avg_hours":157.77,"n":35},"Working on it":{"avg_hours":49.87,"n":34},"Ready for Review":{"avg_hours":29.25,"n":27},"Channel Approval":{"avg_hours":96.63,"n":3},"Changes Required":{"avg_hours":8.84,"n":14},"Approved":{"avg_hours":11.03,"n":17},"Delivered":{"avg_hours":24.32,"n":3},"EXTERNAL":{"avg_hours":29.55,"n":1},"Stuck":{"avg_hours":131.42,"n":9}},"February":{"Creative Queue":{"avg_hours":1178.28,"n":2},"Ready for Creative":{"avg_hours":119.71,"n":3},"Working on it":{"avg_hours":25.72,"n":5},"Ready for Review":{"avg_hours":152.62,"n":7},"Changes Required":{"avg_hours":71.62,"n":2},"Approved":{"avg_hours":2.38,"n":5},"Delivered":{"avg_hours":135.85,"n":1},"Stuck":{"avg_hours":11.55,"n":2}}},"month_order":["December","January","February"],"transitions":{"Ready for Review":{"Changes Required":33,"Approved":29,"Delivered":15,"Working on it":5,"Ready for Creative":2},"Working on it":{"Ready for Review":45,"Stuck":7,"Ready for Creative":7,"Creative Queue":4,"Changes Required":2,"Approved":2},"Changes Required":{"Ready for Review":29,"Delivered":8,"Working on it":3,"Stuck":1},"Approved":{"Delivered":29,"Ready for Review":2,"Working on it":1},"Delivered":{"Changes Required":7,"Ready for Review":2,"Approved":1},"Ready for Creative":{"Working on it":54,"Creative Queue":22,"Ready for Review":5,"Stuck":5,"New":7},"Stuck":{"Ready for Creative":8,"Ready for Review":2,"Delivered":2,"Working on it":1},"Creative Queue":{"Ready for Creative":62,"Ready for Review":2,"Stuck":2,"Working on it":2,"EXTERNAL":3},"Channel Approval":{"Creative Queue":40,"Ready for Creative":9,"New":7},"New":{"Channel Approval":7,"Ready for Creative":6}},"status_order":["New","Creative Queue","Ready for Creative","Working on it","Ready for Review","Channel Approval","Changes Required","Approved","Delivered","EXTERNAL","Stuck"],"items":[{"name":"ROP Organic Social Olympics Logo Change CTM FB","group":"Creative Queue (Up Next)","month":"February","statuses":{"Ready for Review":199.57,"Delivered":135.85,"Approved":5.4,"Working on it":0.98,"Ready for Creative":164.7,"Creative Queue":1178.3},"total_hours":1684.8},{"name":"GM Fran Organic Social Olympics Logo Change CTM FB","group":"Creative Queue (Up Next)","month":"February","statuses":{"Approved":2.47,"Ready for Review":40.0,"Working on it":100.8,"Ready for Creative":169.08,"Creative Queue":1178.25},"total_hours":1490.6},{"name":"ROP Organic Social Olympics Gold Medal Standard CTM AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Working on it":1.27,"Ready for Review":0.53,"Ready for Creative":1.6,"Creative Queue":1178.08},"total_hours":1181.48},{"name":"GM Fran Organic Social Olympics Gold Medal Standard CTM AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Working on it":1.3,"Ready for Creative":1.6,"Creative Queue":1178.0},"total_hours":1180.9},{"name":"ROP Organic Social Olympics Olympics Metaphor CTM AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Working on it":1.42,"Ready for Creative":73.02,"Creative Queue":1105.45},"total_hours":1179.88},{"name":"ROP Organic Social Duramax 2 Winter Final Stretch CTM - FB/AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Review":24.12,"Working on it":0.62,"Ready for Creative":77.38,"Creative Queue":1054.18},"total_hours":1156.3},{"name":"GM Fran Organic Social Why Change Certified CTM - FB/AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Review":98.62,"Working on it":49.07,"Ready for Creative":171.82,"Creative Queue":814.0},"total_hours":1133.52},{"name":"GM Fran Organic Social Olympics Olympics Metaphor CTM AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Creative Queue":1051.62,"Ready for Creative":72.8},"total_hours":1124.42},{"name":"ADI Organic Social Winter Weather Tip CTM","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Review":117.13,"Creative Queue":868.47,"Ready for Creative":91.43},"total_hours":1077.03},{"name":"ROP Organic Social Why Change Certified CTM AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Approved":0.1,"Ready for Review":1.18,"Ready for Creative":174.72,"Working on it":44.27,"Creative Queue":814.0},"total_hours":1034.27},{"name":"ROP Organic Social Winter Weather Tip CTM - need AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Stuck":45.47,"Working on it":98.82,"Ready for Creative":72.27,"Creative Queue":814.0},"total_hours":1030.57},{"name":"ROP Organic Social Duramax 1 CTM","group":"Creative Queue (Up Next)","month":"January","statuses":{"Approved":0.02,"Ready for Review":113.82,"Changes Required":5.27,"Working on it":1.63,"Ready for Creative":212.82,"Stuck":27.27,"Creative Queue":622.37},"total_hours":983.18},{"name":"GM Fran Organic Social Winter Weather Tip CTM - need FB/AP/GBP","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Review":42.72,"Working on it":1.38,"Ready for Creative":27.22,"Creative Queue":904.98},"total_hours":976.3},{"name":"ROP CRM Eblast CTM State Flags Send 4","group":"Creative Queue (Up Next)","month":"January","statuses":{"Changes Required":0.37,"Ready for Review":27.1,"Working on it":209.92,"Ready for Creative":336.83,"Creative Queue":389.2,"Stuck":0.02},"total_hours":963.43},{"name":"Website - CTM GM Updates","group":"Creative Production","month":"January","statuses":{"Stuck":620.62,"Working on it":117.82},"total_hours":738.43},{"name":"ROP Organic Social Why Change Friendly CTM","group":"Creative Queue (Up Next)","month":"January","statuses":{"EXTERNAL":29.55,"Stuck":73.67,"Creative Queue":622.5},"total_hours":725.72},{"name":"GM Fran Organic Social Nat Sticker Day CTM","group":"Creative Queue (Up Next)","month":"January","statuses":{"Approved":20.92,"Ready for Review":0.37,"Working on it":6.47,"Ready for Creative":167.62,"Creative Queue":454.83},"total_hours":650.2},{"name":"ROP CRM - Eblast CTM - Car Types - Send #1","group":"Tactical Plans Sandbox","month":"December","statuses":{"Approved":0.88,"Ready for Review":93.12,"Changes Required":45.72,"Working on it":53.62,"Ready for Creative":449.27,"Creative Queue":0.12,"Channel Approval":4.12},"total_hours":646.85},{"name":"ROP CRM Eblast CTM Olympics Send 3","group":"Creative Queue (Up Next)","month":"January","statuses":{"Stuck":47.37,"Ready for Creative":107.2,"Creative Queue":341.48,"Working on it":150.62},"total_hours":646.67},{"name":"GM Fran - Eblast CTM - Car Types - Send #1","group":"Creative Production","month":"January","statuses":{"Changes Required":0.47,"Ready for Review":3.73,"Working on it":72.47,"Ready for Creative":546.82,"Creative Queue":0.02},"total_hours":623.5},{"name":"ADI Organic Social - Why Change - Fast (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Changes Required":23.82,"Delivered":141.6,"Approved":1.5,"Ready for Review":0.87,"Working on it":0.1,"Ready for Creative":220.62,"Creative Queue":46.17,"Channel Approval":111.88,"New":54.0},"total_hours":600.55},{"name":"Website","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":5.18,"Creative Queue":71.17,"Channel Approval":502.93},"total_hours":579.28},{"name":"ADI Organic Social - Why Change - Friendly (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Working on it":114.93,"Ready for Creative":169.42,"Creative Queue":97.48,"Channel Approval":111.88,"New":54.0},"total_hours":547.72},{"name":"ROP Organic Social Duramax 2 Winter Final Stretch CTM - FB AP GBP","group":"Creative Production","month":"February","statuses":{"Working on it":2.82,"Changes Required":141.2,"Ready for Review":378.37,"Stuck":5.62},"total_hours":528.0},{"name":"ROP Organic Social - Health Days CTM","group":"Creative Production","month":"January","statuses":{"Approved":1.82,"Ready for Review":24.92,"Changes Required":22.22,"Working on it":0.27,"Ready for Creative":458.18},"total_hours":507.42},{"name":"ROP Organic Social - National Sticker Day CTM","group":"Creative Production","month":"January","statuses":{"Ready for Review":55.78,"Changes Required":41.82,"Working on it":4.62,"Ready for Creative":404.12},"total_hours":506.33},{"name":"ADI Organic Social - New Year, New Miles (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Approved":0.02,"Ready for Review":70.1,"Changes Required":1.0,"Ready for Creative":0.87,"Stuck":44.37,"Working on it":172.0,"EXTERNAL":46.0,"Creative Queue":0.48,"Channel Approval":112.47,"New":53.37},"total_hours":500.67},{"name":"ROP Organic Social - Why Change - Fast CTM","group":"Creative Production","month":"January","statuses":{"Changes Required":3.38,"Delivered":48.08,"Ready for Review":65.13,"Working on it":0.27,"Ready for Creative":364.82},"total_hours":481.68},{"name":"ROP Organic Social - New Year, New Miles (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Changes Required":0.52,"Delivered":66.07,"Approved":1.13,"Ready for Review":4.48,"Working on it":46.48,"Ready for Creative":216.82,"Creative Queue":120.82,"Channel Approval":24.68},"total_hours":481.0},{"name":"GM Fran Organic Social National Health Day","group":"Creative Queue (Up Next)","month":"January","statuses":{"Approved":1.23,"Ready for Review":23.63,"Working on it":20.82,"Ready for Creative":0.28,"Creative Queue":431.22},"total_hours":477.18},{"name":"ROP CRM Eblast CTM Weather Send 2","group":"Creative Queue (Up Next)","month":"January","statuses":{"Approved":93.73,"Ready for Review":6.28,"Changes Required":1.22,"Delivered":20.22,"Working on it":21.93,"Ready for Creative":244.37,"Creative Queue":71.0},"total_hours":458.75},{"name":"GM Fran - Email - CTM Send #3","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":408.18,"Creative Queue":0.08,"Channel Approval":23.47},"total_hours":431.73},{"name":"GM Fran - Email - CTM Send #2","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":408.18,"Creative Queue":0.08,"Channel Approval":23.47},"total_hours":431.73},{"name":"ADI CRM Eblast - Weather - CTM Send 2","group":"Creative Production","month":"January","statuses":{"Ready for Review":18.33,"Changes Required":0.72,"Working on it":0.07,"Ready for Creative":412.12},"total_hours":431.23},{"name":"ADI CRM - Eblast CTM Send #1","group":"Tactical Plans Sandbox","month":"December","statuses":{"Creative Queue":92.48,"Channel Approval":337.22},"total_hours":429.7},{"name":"ADI CRM Eblast CTM Send 3","group":"Creative Queue (Up Next)","month":"January","statuses":{"Creative Queue":409.82},"total_hours":409.82},{"name":"ROP CRM - Eblast CTM - State Flags - Send #4","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":399.18,"Creative Queue":4.28,"Channel Approval":4.12},"total_hours":407.58},{"name":"ROP CRM - Eblast CTM - Olympics - Send #3","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":399.18,"Creative Queue":4.28,"Channel Approval":4.12},"total_hours":407.58},{"name":"ROP CRM - Eblast CTM - Weather - Send #2","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":403.37,"Creative Queue":0.08,"Channel Approval":4.12},"total_hours":407.58},{"name":"ADI PMAX - $20 + $10 Creative Refresh","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Review":42.62,"Changes Required":219.28,"Ready for Creative":0.02,"Creative Queue":67.0,"Channel Approval":54.0,"New":0.07},"total_hours":382.98},{"name":"GM Fran - Paid Social (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Review":39.62,"Working on it":120.37,"Changes Required":173.48,"Ready for Creative":44.68,"Creative Queue":4.62},"total_hours":382.77},{"name":"GM Fran - Pmax Assets (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Review":90.18,"Changes Required":172.82,"Working on it":95.72,"Ready for Creative":19.47,"Creative Queue":4.62},"total_hours":382.8},{"name":"CRM - CTM CarFax Email","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":23.28,"Creative Queue":137.82,"Channel Approval":221.22},"total_hours":382.32},{"name":"GM Fran - Organic Social - Why Change - Fast CTM","group":"Creative Production","month":"January","statuses":{"Approved":1.82,"Ready for Review":1.63,"Working on it":0.47,"Ready for Creative":363.72},"total_hours":367.63},{"name":"GM Fran - Organic Social - New Year, New Miles (CTM)","group":"Tactical Plans Sandbox","month":"December","statuses":{"Approved":0.72,"Ready for Review":22.38,"Working on it":24.47,"Ready for Creative":168.62,"Creative Queue":120.82,"Channel Approval":24.68},"total_hours":361.68},{"name":"GM Fran Email CTM Send 2","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Creative":266.48,"Creative Queue":71.0},"total_hours":337.48},{"name":"ADI CRM - Eblast CTM Send #3","group":"Tactical Plans Sandbox","month":"December","statuses":{"Channel Approval":337.22},"total_hours":337.22},{"name":"ADI CRM - Eblast CTM Send #2","group":"Tactical Plans Sandbox","month":"December","statuses":{"Channel Approval":337.22},"total_hours":337.22},{"name":"ADI CRM Eblast- Olympics - CTM Send 3","group":"Creative Production","month":"January","statuses":{"Stuck":138.0,"Working on it":0.08,"Ready for Creative":191.62},"total_hours":329.7},{"name":"GM Fran Email - Olympics -  CTM Send 3","group":"Creative Production","month":"January","statuses":{"Stuck":137.93,"Ready for Creative":191.62},"total_hours":329.55},{"name":"ROP Organic Social - Why Change - Friendly CTM","group":"Creative Production","month":"January","statuses":{"Ready for Review":22.97,"Changes Required":14.72,"Working on it":4.32,"Ready for Creative":277.28},"total_hours":319.28},{"name":"ROP CRM Eblast - Olympics CTM - Send 3","group":"Creative Production","month":"January","statuses":{"Stuck":44.37,"Ready for Creative":273.22},"total_hours":317.58},{"name":"ADI CRM Eblast CTM Weather Send 2","group":"Creative Production","month":"January","statuses":{"Stuck":3.52,"Working on it":57.82,"Ready for Creative":248.35},"total_hours":309.68},{"name":"GM Fran CRM Eblast CTM State Flags Send 4","group":"Creative Queue (Up Next)","month":"January","statuses":{"Ready for Creative":213.48,"Creative Queue":71.0},"total_hours":284.48},{"name":"ROP Organic Social - Duramax 2 Winter Final Stretch CTM AP/GBP","group":"Creative Production","month":"January","statuses":{"Working on it":0.62,"Ready for Creative":210.82,"Stuck":5.62},"total_hours":217.05},{"name":"GM Fran Organic Social - Duramax 2 Winter Final Stretch CTM AP/GBP","group":"Creative Production","month":"January","statuses":{"Working on it":0.62,"Ready for Creative":210.82,"Stuck":5.62},"total_hours":217.05},{"name":"ROP CRM Eblast CTM - Send 1","group":"Creative Production","month":"January","statuses":{"Ready for Review":12.0,"Changes Required":4.45,"Working on it":10.75,"Ready for Creative":188.28},"total_hours":215.48},{"name":"GM Fran - Organic Social - New Year, New Miles CTM","group":"Creative Production","month":"January","statuses":{"Approved":1.3,"Ready for Review":14.93,"Working on it":1.12,"Ready for Creative":193.8},"total_hours":211.15},{"name":"ADI Organic Social - National Sticker Day CTM","group":"Tactical Plans Sandbox","month":"December","statuses":{"Approved":0.83,"Ready for Review":50.27,"Working on it":58.15,"Ready for Creative":95.83,"Channel Approval":4.12},"total_hours":209.2},{"name":"ADI - Email - CTM Send #3","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":162.1,"Creative Queue":0.08,"Channel Approval":23.47},"total_hours":185.65},{"name":"ADI - Email - CTM Send #2","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":162.1,"Creative Queue":0.08,"Channel Approval":23.47},"total_hours":185.65},{"name":"ADI - Email - CTM Send #1","group":"Tactical Plans Sandbox","month":"December","statuses":{"Ready for Creative":162.1,"Creative Queue":0.08,"Channel Approval":23.47},"total_hours":185.65},{"name":"GM Fran - Organic Social - Health Days CTM","group":"Creative Production","month":"January","statuses":{"Approved":1.82,"Ready for Review":0.5,"Working on it":0.28,"Ready for Creative":175.03},"total_hours":177.63},{"name":"ROP Organic Social - Why Change - Certified CTM","group":"Creative Production","month":"January","statuses":{"Approved":1.82,"Ready for Review":52.78,"Working on it":0.32,"Ready for Creative":117.12},"total_hours":172.03},{"name":"GM Fran - Organic Social - Why Change - Friendly CTM","group":"Creative Production","month":"January","statuses":{"Approved":0.5,"Ready for Review":2.1,"Working on it":0.0,"Ready for Creative":160.3},"total_hours":162.9},{"name":"GM Fran Organic Social - Why Change - Certified CTM","group":"Creative Production","month":"January","statuses":{"Approved":0.5,"Ready for Review":2.1,"Working on it":0.0,"Ready for Creative":160.3},"total_hours":162.9},{"name":"ADI Organic Social - Why Change - Certified CTM","group":"Tactical Plans Sandbox","month":"December","statuses":{"Changes Required":1.52,"Ready for Review":17.07,"Working on it":10.38,"Ready for Creative":96.22,"Channel Approval":20.53},"total_hours":145.72},{"name":"GM Fran - Pmax Assets - CTM","group":"Tactical Plans Sandbox","month":"December","statuses":{"Changes Required":3.28,"Approved":0.07,"Ready for Review":13.05,"Working on it":63.08,"Ready for Creative":58.97},"total_hours":138.45},{"name":"ROP CRM Eblast CTM Olympics Olympics Send 3","group":"Creative Queue (Up Next)","month":"January","statuses":{"Creative Queue":124.68},"total_hours":124.68},{"name":"GM Fran Organic Social - National Sticker Day CTM","group":"Creative Production","month":"January","statuses":{"Approved":20.92,"Working on it":4.42,"Ready for Creative":98.28},"total_hours":123.62},{"name":"ADI CRM Eblast CTM Send 1","group":"Creative Production","month":"January","statuses":{"Working on it":27.35,"Ready for Creative":94.28},"total_hours":121.63},{"name":"GM Fran Organic Social Olympics Logo Change CTM AP/GBP","group":"Creative Production","month":"February","statuses":{"Ready for Review":2.52,"Working on it":0.48,"Approved":2.47},"total_hours":5.47},{"name":"ROP Organic Social Olympics Logo Change CTM AP/GBP","group":"Creative Production","month":"February","statuses":{"Ready for Review":2.52,"Working on it":0.48,"Approved":2.47},"total_hours":5.47},{"name":"ROP Organic Social Olympics Olympics Metaphor CTM FB","group":"Creative Production","month":"February","statuses":{"Ready for Review":2.0,"Approved":1.93},"total_hours":3.93},{"name":"GM Fran Organic Social Olympics Olympics Metaphor CTM FB","group":"Creative Production","month":"February","statuses":{"Ready for Review":2.0,"Approved":1.93},"total_hours":3.93},{"name":"GM Fran Organic Social Olympics Gold Medal Standard CTM FB","group":"Creative Production","month":"February","statuses":{"Ready for Review":0.53,"Working on it":1.27},"total_hours":1.8},{"name":"ROP Organic Social Olympics Gold Medal Standard CTM FB","group":"Creative Production","month":"February","statuses":{"Ready for Review":0.53,"Working on it":1.27},"total_hours":1.8}]};
+
+// ── STATUS COLOR PALETTE — muted, professional ────────────────────────────────
+const SC = {
+  "New":              "#94a3b8",
+  "Creative Queue":   "#C8102E",
+  "Ready for Creative":"#1d6fb8",
+  "Working on it":    "#0d7c74",
+  "Ready for Review": "#5b4fcf",
+  "Channel Approval": "#b45309",
+  "Changes Required": "#c2530a",
+  "Approved":         "#1a7a52",
+  "Delivered":        "#166534",
+  "EXTERNAL":         "#7c3aed",
+  "Stuck":            "#991b1b",
+  "Backlog/Deferred": "#6b7280"
+};
+
+// Tag bg/text combos for group labels
+const GC = {
+  "Creative Production":       { bg:"#fde8eb", text:"#9b0e22", border:"#f5a0ab" },
+  "Creative Queue (Up Next)":  { bg:"#dbeafe", text:"#1e40af", border:"#93c5fd" },
+  "Tactical Plans Sandbox":    { bg:"#fef3c7", text:"#92400e", border:"#fcd34d" }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let ag = 'all', am = 'all', sortMode = 'desc';
+let gcInst = null, mcInst = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmt(h) {
+  const d = Math.floor(h / 24), r = Math.round(h - d * 24);
+  if (d > 0 && r > 0) return `${d}d ${r}h`;
+  if (d > 0) return `${d}d`;
+  return h > 0 ? (r === 0 ? '<1h' : `${r}h`) : '0h';
+}
+
+function computeAvgs(gf, mf) {
+  const f = RAW.items.filter(i => (gf==='all'||i.group===gf) && (mf==='all'||i.month===mf));
+  if (!f.length) return {};
+  const t = {}, c = {};
+  for (const i of f) for (const [s, h] of Object.entries(i.statuses)) {
+    t[s] = (t[s]||0) + h; c[s] = (c[s]||0) + 1;
+  }
+  const o = {};
+  for (const s of RAW.status_order) if (t[s]) o[s] = { avg_hours: t[s]/c[s], n: c[s] };
+  return o;
+}
+
+const filteredItems = () => RAW.items.filter(i =>
+  (ag==='all'||i.group===ag) && (am==='all'||i.month===am)
+);
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const a = computeAvgs(ag, am), items = filteredItems();
+  document.getElementById('kv-items').textContent = items.length;
+  const gs = [...new Set(items.map(i => i.group))];
+  document.getElementById('ks-items').textContent = gs.length === 1 ? gs[0] : `Across ${gs.length} groups`;
+  const q = a['Creative Queue'], st = a['Stuck'], rfr = a['Ready for Review'], ap = a['Approved'];
+  document.getElementById('kv-queue').textContent   = q   ? fmt(q.avg_hours)   : 'N/A';
+  document.getElementById('kv-stuck').textContent   = st  ? fmt(st.avg_hours)  : 'N/A';
+  document.getElementById('ks-stuck').textContent   = st  ? `${st.n} items affected` : 'No items stuck';
+  document.getElementById('kv-rfr').textContent     = rfr ? fmt(rfr.avg_hours) : 'N/A';
+  document.getElementById('ks-rfr').textContent     = rfr ? `${rfr.n} items`   : '';
+  document.getElementById('kv-approve').textContent = ap  ? fmt(ap.avg_hours)  : 'N/A';
+}
+
+// ── STATUS BARS ───────────────────────────────────────────────────────────────
+function renderBars() {
+  const a = computeAvgs(ag, am);
+  let statuses = RAW.status_order.filter(s => a[s]);
+  if (sortMode === 'desc') statuses = [...statuses].sort((x,y) => a[y].avg_hours - a[x].avg_hours);
+  const mx = Math.max(...statuses.map(s => a[s].avg_hours));
+  const el = document.getElementById('overall-bars');
+  if (!statuses.length) { el.innerHTML = '<div class="no-r">No data for current filters</div>'; return; }
+  el.innerHTML = statuses.map(s => `
+    <div class="srow">
+      <div class="sname">${s}</div>
+      <div class="btrack">
+        <div class="bfill" style="width:${(a[s].avg_hours/mx*100).toFixed(1)}%;background:${SC[s]||'#888'}"></div>
+      </div>
+      <div class="sval">${fmt(a[s].avg_hours)}<span class="sn">n=${a[s].n}</span></div>
+    </div>`).join('');
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  document.getElementById('sort-asc').classList.toggle('active', mode === 'asc');
+  document.getElementById('sort-desc').classList.toggle('active', mode === 'desc');
+  renderBars();
+}
+
+// ── MONTH CHART ───────────────────────────────────────────────────────────────
+function renderMonthChart() {
+  const ctx = document.getElementById('month-chart').getContext('2d');
+  if (mcInst) mcInst.destroy();
+  const months = RAW.month_order;
+  const ranked = RAW.status_order
+    .map(s => ({ s, v: months.reduce((a,m) => a + (RAW.month_avgs[m]?.[s]?.avg_hours||0), 0) }))
+    .sort((a,b) => b.v - a.v).slice(0, 6).map(x => x.s);
+  mcInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels: months, datasets: ranked.map(s => ({
+      label: s,
+      data: months.map(m => +(RAW.month_avgs[m]?.[s]?.avg_hours||0).toFixed(1)),
+      borderColor: SC[s]||'#888',
+      backgroundColor: (SC[s]||'#888') + '18',
+      borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.35, fill: false
+    })) },
+    options: {
+      responsive: true,
+      scales: {
+        x: { ticks: { color:'#94a3b8', font:{ family:'Inter', size:11 } }, grid: { color:'#f1f3f5' } },
+        y: { ticks: { color:'#94a3b8', font:{ family:'Inter', size:11 }, callback: v => fmt(v) }, grid: { color:'#f1f3f5' } }
+      },
+      plugins: {
+        legend: { labels: { color:'#3d4350', font:{ family:'Inter', size:11 }, boxWidth:10, padding:10 } },
+        tooltip: {
+          backgroundColor:'#fff', borderColor:'#e3e6eb', borderWidth:1,
+          titleColor:'#1a1d23', bodyColor:'#3d4350',
+          padding: 10,
+          callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.raw)}` }
+        }
+      }
+    }
+  });
+}
+
+// ── GROUP CHART ───────────────────────────────────────────────────────────────
+function renderGroupChart() {
+  const ctx = document.getElementById('group-chart').getContext('2d');
+  if (gcInst) gcInst.destroy();
+  const groups = ag === 'all' ? Object.keys(RAW.group_avgs) : [ag];
+  const allS = new Set();
+  groups.forEach(g => Object.keys(RAW.group_avgs[g]||{}).forEach(s => allS.add(s)));
+  const labels = RAW.status_order.filter(s => allS.has(s));
+  const palette = { "Creative Production":"#C8102E", "Creative Queue (Up Next)":"#1d6fb8", "Tactical Plans Sandbox":"#b45309" };
+  const datasets = groups.map(g => {
+    const a = am !== 'all' ? computeAvgs(g, am) : RAW.group_avgs[g]||{};
+    const lbl = g==='Creative Queue (Up Next)'?'CQ (Up Next)':g==='Tactical Plans Sandbox'?'Sandbox':g;
+    const col = palette[g] || '#888';
+    return {
+      label: lbl,
+      data: labels.map(s => +(a[s]?.avg_hours||0).toFixed(1)),
+      backgroundColor: col + '30',
+      borderColor: col,
+      borderWidth: 1.5,
+      borderRadius: 3
+    };
+  });
+  gcInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: { ticks: { color:'#94a3b8', font:{ family:'Inter', size:10 }, maxRotation:30 }, grid: { color:'#f1f3f5' } },
+        y: { ticks: { color:'#94a3b8', font:{ family:'Inter', size:11 }, callback: v => fmt(v) }, grid: { color:'#f1f3f5' } }
+      },
+      plugins: {
+        legend: { labels: { color:'#3d4350', font:{ family:'Inter', size:11 }, boxWidth:10 } },
+        tooltip: {
+          backgroundColor:'#fff', borderColor:'#e3e6eb', borderWidth:1,
+          titleColor:'#1a1d23', bodyColor:'#3d4350', padding:10,
+          callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.raw)}` }
+        }
+      }
+    }
+  });
+}
+
+// ── TRANSITIONS ───────────────────────────────────────────────────────────────
+function renderTransitions() {
+  const sorted = Object.entries(RAW.transitions)
+    .map(([f, tos]) => ({ f, tos, tot: Object.values(tos).reduce((a,b)=>a+b,0) }))
+    .sort((a,b) => b.tot - a.tot).slice(0, 9);
+  document.getElementById('trans-list').innerHTML = sorted.map(({ f, tos }) => {
+    const mx = Math.max(...Object.values(tos));
+    const top = Object.entries(tos).sort((a,b) => b[1]-a[1]).slice(0, 4);
+    return `<div class="trow">
+      <div class="tfrom">${f}</div>
+      <div class="ttos">${top.map(([t,n]) => `
+        <div class="tto">
+          <div class="tbar" style="width:${Math.max(6,n/mx*60)}px;background:${SC[t]||'#888'}"></div>
+          <span style="color:${SC[t]||'#888'};font-weight:500">${t}</span>
+          <span class="tcnt">${n}×</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ITEMS TABLE ───────────────────────────────────────────────────────────────
+function renderItems() {
+  const items = filteredItems();
+  document.getElementById('item-count').textContent = `${items.length} items`;
+  const tbody = document.getElementById('items-tbody');
+  if (!items.length) { tbody.innerHTML = `<tr><td colspan="5" class="no-r">No items match current filters</td></tr>`; return; }
+  tbody.innerHTML = items.map(item => {
+    const ri = RAW.items.indexOf(item);
+    const ss = Object.entries(item.statuses).sort((a,b) => b[1]-a[1]);
+    const mx = Math.max(...ss.map(s=>s[1]));
+    const sparks = ss.map(([s,h]) => {
+      const ht = Math.max(3, Math.round(h/mx*18));
+      return `<div class="spark" style="height:${ht}px;width:5px;background:${SC[s]||'#888'}" title="${s}: ${fmt(h)}"></div>`;
+    }).join('');
+    const gc = GC[item.group] || { bg:'#f3f4f6', text:'#374151', border:'#d1d5db' };
+    const gShort = item.group==='Creative Queue (Up Next)'?'CQ (Up Next)':item.group==='Creative Production'?'Creative Prod':'Sandbox';
+    return `<tr onclick="showPanel(${ri})">
+      <td class="iname">${item.name}</td>
+      <td><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${gShort}</span></td>
+      <td><span class="mtag">${item.month}</span></td>
+      <td><div class="sparkrow">${sparks}</div></td>
+      <td class="itotal">${fmt(item.total_hours)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+function showPanel(i) {
+  const item = RAW.items[i];
+  const ss = Object.entries(item.statuses).sort((a,b) => b[1]-a[1]);
+  const mx = Math.max(...ss.map(s=>s[1]));
+  const gc = GC[item.group] || { bg:'#f3f4f6', text:'#374151', border:'#d1d5db' };
+  document.getElementById('panel-content').innerHTML = `
+    <div class="pname">${item.name}</div>
+    <div class="pmeta">
+      <span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${item.group}</span>
+      <span>·</span><span>${item.month}</span>
+    </div>
+    <div class="psec">Time Per Status</div>
+    <div class="pbars">${ss.map(([s,h]) => `
+      <div class="pbrow">
+        <div class="pbname">${s}</div>
+        <div class="btrack"><div class="bfill" style="width:${(h/mx*100).toFixed(1)}%;background:${SC[s]||'#888'}"></div></div>
+        <div class="pbval" style="color:${SC[s]||'#888'}">${fmt(h)}</div>
+      </div>`).join('')}
+    </div>
+    <div class="ptotal">
+      <span>Total time tracked</span>
+      <strong>${fmt(item.total_hours)}</strong>
+    </div>`;
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel() { document.getElementById('panel').classList.remove('open'); }
+
+// ── FILTER EVENTS ─────────────────────────────────────────────────────────────
+document.getElementById('group-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-group]');
+  if (!btn) return;
+  ag = btn.dataset.group;
+  document.querySelectorAll('[data-group]').forEach(b => b.classList.remove('active','active-b','active-p'));
+  btn.classList.add('active');
+  renderAll();
+});
+
+document.getElementById('month-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-month]');
+  if (!btn) return;
+  am = btn.dataset.month;
+  document.querySelectorAll('[data-month]').forEach(b => b.classList.remove('active','active-b','active-p'));
+  btn.classList.add(btn.dataset.month==='all' ? 'active-b' : btn.dataset.month==='February' ? 'active-p' : 'active');
+  renderAll();
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function renderAll() { renderKPIs(); renderBars(); renderGroupChart(); renderMonthChart(); renderTransitions(); renderItems(); }
+renderAll();
+</script>
+</body>
+</html>
