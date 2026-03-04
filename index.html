@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,12 +129,6 @@ main{padding:24px 32px;display:grid;gap:20px;max-width:1600px;}
 .kpi-val{font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;}
 .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
 
-/* KPI CLICK DRILL */
-.kpi.clickable{cursor:pointer;transition:transform 0.1s,border-color 0.12s,box-shadow 0.12s;}
-.kpi.clickable:hover{border-color:var(--red);box-shadow:0 4px 16px rgba(0,0,0,0.08);transform:translateY(-1px);}
-.kpi.clickable:active{transform:translateY(0);}
-.kpi-hint{font-size:10px;color:var(--muted2);margin-top:6px;}
-
 /* BOTTLENECKS */
 .bottleneck-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
 .bn-tag{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border2);border-radius:6px;padding:7px 13px;box-shadow:var(--shadow-sm);border-left:3px solid var(--red);transition:box-shadow 0.15s,border-color 0.15s,transform 0.1s;cursor:pointer;user-select:none;}
@@ -235,6 +228,17 @@ td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;f
 .spark{border-radius:1px;min-width:4px;opacity:0.85;}
 .chart-wrap canvas{max-height:220px;}
 
+/* PANEL OVERLAY (click-out close) */
+#panel-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.15);
+  backdrop-filter: blur(1px);
+  z-index:190; /* below panel (200), above main content */
+}
+#panel-overlay.open{display:block;}
+
 /* DETAIL PANEL */
 #panel{display:none;position:fixed;top:0;right:0;bottom:0;width:400px;background:var(--white);border-left:1px solid var(--border2);z-index:200;padding:24px 22px;overflow-y:auto;box-shadow:var(--shadow-lg);}
 #panel.open{display:block;animation:si 0.18s ease;}
@@ -276,13 +280,6 @@ td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;f
 .bn-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;cursor:pointer;margin-bottom:14px;transition:all 0.12s;}
 .bn-back:hover{color:var(--red);border-color:var(--red-mid);}
 .bn-rework-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:3px;vertical-align:middle;}
-
-/* PANEL “ACTION BUTTONS” */
-.pbtn-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px;}
-.pbtn{font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text2);transition:all 0.12s;}
-.pbtn:hover{border-color:var(--red);color:var(--red);background:var(--red-light);}
-.pchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--text2);font-weight:600;}
-.pchip b{font-family:'Inter Tight',sans-serif;}
 </style>
 </head>
 <body>
@@ -378,48 +375,12 @@ td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;f
 
   <div>
     <div class="sh"><div class="sh-dot"></div>Overview</div>
-
-    <!-- KPI CARDS (CLICKABLE) -->
     <div class="kpi-row">
-      <div class="kpi clickable" id="kpi-items">
-        <div class="kpi-color-bar" style="background:var(--red)"></div>
-        <div class="kpi-lbl">Items Analyzed</div>
-        <div class="kpi-val" style="color:var(--red)" id="kv-items">—</div>
-        <div class="kpi-sub" id="ks-items">—</div>
-        <div class="kpi-hint">Click to drill →</div>
-      </div>
-
-      <div class="kpi clickable" id="kpi-topstatus">
-        <div class="kpi-color-bar" style="background:var(--blue)"></div>
-        <div class="kpi-lbl">Avg in Top Status</div>
-        <div class="kpi-val" style="color:var(--blue)" id="kv-queue">—</div>
-        <div class="kpi-sub" id="ks-queue">Largest pre-production stage</div>
-        <div class="kpi-hint">Click to drill →</div>
-      </div>
-
-      <div class="kpi clickable" id="kpi-dominance">
-        <div class="kpi-color-bar" style="background:var(--amber)"></div>
-        <div class="kpi-lbl">Top Status Dominance</div>
-        <div class="kpi-val" style="color:var(--amber)" id="kv-dominance">—</div>
-        <div class="kpi-sub">Share of all tracked time</div>
-        <div class="kpi-hint">Click to drill →</div>
-      </div>
-
-      <div class="kpi clickable" id="kpi-rfr">
-        <div class="kpi-color-bar" style="background:var(--purple)"></div>
-        <div class="kpi-lbl">Avg Ready for Review</div>
-        <div class="kpi-val" style="color:var(--purple)" id="kv-rfr">—</div>
-        <div class="kpi-sub" id="ks-rfr">—</div>
-        <div class="kpi-hint">Click to drill →</div>
-      </div>
-
-      <div class="kpi clickable" id="kpi-approve">
-        <div class="kpi-color-bar" style="background:var(--green)"></div>
-        <div class="kpi-lbl">Avg Time to Approve</div>
-        <div class="kpi-val" style="color:var(--green)" id="kv-approve">—</div>
-        <div class="kpi-sub">Once approved</div>
-        <div class="kpi-hint">Click to drill →</div>
-      </div>
+      <div class="kpi"><div class="kpi-color-bar" style="background:var(--red)"></div><div class="kpi-lbl">Items Analyzed</div><div class="kpi-val" style="color:var(--red)" id="kv-items">—</div><div class="kpi-sub" id="ks-items">—</div></div>
+      <div class="kpi"><div class="kpi-color-bar" style="background:var(--blue)"></div><div class="kpi-lbl">Avg in Top Status</div><div class="kpi-val" style="color:var(--blue)" id="kv-queue">—</div><div class="kpi-sub" id="ks-queue">Largest pre-production stage</div></div>
+      <div class="kpi"><div class="kpi-color-bar" style="background:var(--amber)"></div><div class="kpi-lbl">Top Status Dominance</div><div class="kpi-val" style="color:var(--amber)" id="kv-dominance">—</div><div class="kpi-sub">Share of all tracked time</div></div>
+      <div class="kpi"><div class="kpi-color-bar" style="background:var(--purple)"></div><div class="kpi-lbl">Avg Ready for Review</div><div class="kpi-val" style="color:var(--purple)" id="kv-rfr">—</div><div class="kpi-sub" id="ks-rfr">—</div></div>
+      <div class="kpi"><div class="kpi-color-bar" style="background:var(--green)"></div><div class="kpi-lbl">Avg Time to Approve</div><div class="kpi-val" style="color:var(--green)" id="kv-approve">—</div><div class="kpi-sub">Once approved</div></div>
     </div>
   </div>
 
@@ -506,6 +467,9 @@ td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;f
   </div>
 </main>
 
+<!-- Overlay for click-out close -->
+<div id="panel-overlay" aria-hidden="true"></div>
+
 <div id="panel">
   <button class="pclose" onclick="closePanel()">✕</button>
   <div id="panel-content"></div>
@@ -529,52 +493,6 @@ let _pendingCSV = null, _pendingFilename = null;
 function fmt(h){const d=Math.floor(h/24),r=Math.round(h-d*24);if(d>0&&r>0)return`${d}d ${r}h`;if(d>0)return`${d}d`;return h>0?(r===0?'<1h':`${r}h`):'0h';}
 function pct(n,d){return d?Math.round(n/d*100)+'%':'—';}
 function statusColor(s){if(SC[s])return SC[s];const idx=Object.keys(SC).length%COLOR_POOL.length;SC[s]=COLOR_POOL[idx];return SC[s];}
-function escHtml(s){
-  return String(s ?? '')
-    .replaceAll('&','&amp;').replaceAll('<','&lt;')
-    .replaceAll('>','&gt;').replaceAll('"','&quot;')
-    .replaceAll("'","&#39;");
-}
-function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
-function quantile(arr,q){
-  if(!arr?.length) return null;
-  const a=[...arr].sort((x,y)=>x-y);
-  const pos=(a.length-1)*q;
-  const base=Math.floor(pos);
-  const rest=pos-base;
-  if(a[base+1]===undefined) return a[base];
-  return a[base] + rest*(a[base+1]-a[base]);
-}
-function mean(arr){return arr?.length?arr.reduce((s,x)=>s+x,0)/arr.length:null;}
-function itemTotalMinutes(item){ return Object.values(item.statuses).reduce((a,b)=>a+(b||0),0) * 60; }
-
-// Quick “set filters” helpers used by drilldowns
-function setGroupFilter(g){
-  ag = g;
-  const el = document.getElementById('group-pills');
-  if(el){
-    el.querySelectorAll('[data-group]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    const btn = el.querySelector(`[data-group="${CSS.escape(g)}"]`);
-    if(btn) btn.classList.add('active');
-  }
-  renderAll();
-}
-function setMonthFilter(m){
-  am = m;
-  const el = document.getElementById('month-pills');
-  if(el){
-    el.querySelectorAll('[data-month]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    const btn = el.querySelector(`[data-month="${CSS.escape(m)}"]`);
-    if(btn) btn.classList.add(m==='all'?'active-b':'active');
-  }
-  renderAll();
-}
-function setStatusFilterSingle(s){
-  selectedStatuses = new Set([s]);
-  buildDropdown();
-  updateDropdownLabel();
-  renderItems();
-}
 
 // ── LIBRARY ───────────────────────────────────────────────────────────────────
 const LIB_KEY = 'fsa_dataset_library';
@@ -615,15 +533,15 @@ function renderLanding(){
           <button class="dc-menu-btn" onclick="event.stopPropagation();showCtxMenu('${e.id}',this)" title="Options">⋯</button>
         </div>
         <div>
-          <div class="dc-name">${escHtml(e.name)}</div>
-          ${e.board?`<div class="dc-board">${escHtml(e.board)}</div>`:''}
+          <div class="dc-name">${e.name}</div>
+          ${e.board?`<div class="dc-board">${e.board}</div>`:''}
         </div>
         <div class="dc-meta">
           <span class="dc-chip blue">${items} items</span>
           ${rw?`<span class="dc-chip red">↺ ${rw} rework</span>`:''}
-          ${months?`<span class="dc-chip">${escHtml(months)}</span>`:''}
+          ${months?`<span class="dc-chip">${months}</span>`:''}
         </div>
-        <div class="dc-added">Added ${date} · ${escHtml(e.filename)}</div>
+        <div class="dc-added">Added ${date} · ${e.filename}</div>
       </div>`;
     }).join('');
   } else {
@@ -730,11 +648,13 @@ function handleFileUpload(input){
     initDashboard(true);
   }
 
+  // Read as UTF-8 first; if parse fails or produces no status rows, retry with latin-1
   const r1 = new FileReader();
   r1.onload = e => {
     try {
       tryParse(e.target.result);
     } catch(err) {
+      // UTF-8 failed — try latin-1 (handles Monday.com exports with accented chars)
       const r2 = new FileReader();
       r2.onload = e2 => {
         try { tryParse(e2.target.result); }
@@ -748,9 +668,7 @@ function handleFileUpload(input){
 
 function showStatus(type,msg){
   const el=document.getElementById('parse-status');
-  el.className = type === 'ok' ? 'ok' : 'err';
-  el.textContent=msg;
-  el.style.display='block';
+  el.className=type; el.textContent=msg;
   setTimeout(()=>{el.style.display='none';},7000);
 }
 
@@ -764,41 +682,34 @@ function initDashboard(showSaveBtn){
   SC = {...DEFAULT_SC};
   selectedStatuses = new Set(DATA.statusOrder);
   ag='all'; am='all'; tableSortMode='total-desc'; sortMode='desc';
-
-  buildGroupPills();
-  buildMonthPills();
-  buildDropdown();
-  updateDropdownLabel();
-
+  buildGroupPills(); buildMonthPills(); buildDropdown();
   renderAll();
-  bindKPIDrills();
 }
 
 // ── GROUP / MONTH PILLS ───────────────────────────────────────────────────────
 function buildGroupPills(){
   const el=document.getElementById('group-pills');
-  el.innerHTML=`<button class="pill active" data-group="all">All Groups</button>`+DATA.groups.map(g=>`<button class="pill" data-group="${escHtml(g)}">${escHtml(g)}</button>`).join('');
-  el.onclick = (e)=>{
+  el.innerHTML=`<button class="pill active" data-group="all">All Groups</button>`+DATA.groups.map(g=>`<button class="pill" data-group="${g}">${g}</button>`).join('');
+  el.addEventListener('click',e=>{
     const btn=e.target.closest('[data-group]'); if(!btn) return;
     ag=btn.dataset.group;
     el.querySelectorAll('[data-group]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    btn.classList.add('active');
-    renderAll();
-  };
+    btn.classList.add('active'); renderAll();
+  });
 }
 function buildMonthPills(){
   const el=document.getElementById('month-pills');
-  el.innerHTML=`<button class="pill active-b" data-month="all">All Months</button>`+DATA.monthOrder.map(m=>`<button class="pill" data-month="${escHtml(m)}">${escHtml(m)}</button>`).join('');
-  el.onclick = (e)=>{
+  el.innerHTML=`<button class="pill active-b" data-month="all">All Months</button>`+DATA.monthOrder.map(m=>`<button class="pill" data-month="${m}">${m}</button>`).join('');
+  el.addEventListener('click',e=>{
     const btn=e.target.closest('[data-month]'); if(!btn) return;
     am=btn.dataset.month;
     el.querySelectorAll('[data-month]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    btn.classList.add(am==='all'?'active-b':'active');
-    renderAll();
-  };
+    btn.classList.add(am==='all'?'active-b':'active'); renderAll();
+  });
 }
 
 function parseCSV(text, filename) {
+  // Parse CSV respecting quoted fields
   function parseRow(line) {
     const cells = []; let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
@@ -811,8 +722,11 @@ function parseCSV(text, filename) {
     return cells;
   }
 
+  // Normalize line endings (\r\n and bare \r both → \n), then split
   const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
 
+  // Skip any leading junk lines (e.g. rows of just commas) before the real header.
+  // The real header is the first line that contains a known Monday.com column name.
   const HEADER_SIGNAL = ["Item's name", "Last activity date", "Who made the change"];
   let headerIdx = 0;
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
@@ -820,6 +734,7 @@ function parseCSV(text, filename) {
   }
   const cleanLines = lines.slice(headerIdx).filter(l => l.trim());
 
+  // Remove BOM from first line
   if (cleanLines[0].charCodeAt(0) === 0xFEFF || cleanLines[0].startsWith('\uFEFF')) cleanLines[0] = cleanLines[0].slice(1);
   const headers = parseRow(cleanLines[0]).map(h => h.replace(/^\uFEFF/,'').trim());
 
@@ -840,7 +755,8 @@ function parseCSV(text, filename) {
 
   if (!statusRows.length) throw new Error("No Status change rows found (Type='color', Name='Status').");
 
-  const itemMap = {};
+  // Build per-item data
+  const itemMap = {};   // item name -> {group, month, statuses:{s:totalMins}, transitions:[], seenStatuses:Set}
   const allGroups = new Set(), allMonths = new Set(), allStatuses = new Set();
 
   for (const r of statusRows) {
@@ -851,7 +767,7 @@ function parseCSV(text, filename) {
     const month = r[iMonth] || 'Unknown';
     const group = r[iGroup] || 'Unknown';
     if (!item || !from) continue;
-    if (!itemMap[item]) itemMap[item] = { group, month, statuses:{}, transitions:[], rework:false };
+    if (!itemMap[item]) itemMap[item] = { group, month, statuses:{}, transitions:[], seenFromStatuses:new Set(), rework:false };
     const d = itemMap[item];
     d.statuses[from] = (d.statuses[from]||0) + mins;
     d.transitions.push({from, to, mins});
@@ -859,6 +775,7 @@ function parseCSV(text, filename) {
     if (to) allStatuses.add(to);
   }
 
+  // Rework detection: an item has rework if any From status appears more than once
   let reworkCount = 0;
   const reworkItems = new Set();
   for (const [name, d] of Object.entries(itemMap)) {
@@ -870,24 +787,31 @@ function parseCSV(text, filename) {
     if (d.rework) { reworkCount++; reworkItems.add(name); }
   }
 
+  // Build status order (by total time desc)
   const statusTotals = {};
   for (const d of Object.values(itemMap)) for (const [s,m] of Object.entries(d.statuses)) statusTotals[s] = (statusTotals[s]||0)+m;
   const statusOrder = Object.keys(statusTotals).sort((a,b)=>statusTotals[b]-statusTotals[a]);
 
+  // Month order
   const MONTH_KNOWN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+  // Build a map of month -> earliest date seen in the CSV so we sort by actual chronological order,
+  // not just calendar-month index (handles Dec→Jan→Feb spanning a year-boundary correctly).
   const iDate = col("Last activity date & time");
-  const monthFirstSeen = {};
+  const monthFirstSeen = {}; // month name -> earliest JS timestamp
   for (const r of rows) {
     const month = r[iMonth];
     if (!month) continue;
     let ts = Infinity;
     if (iDate !== -1 && r[iDate]) {
+      // parse "DD/MM/YYYY HH:MM:SS" — normalize multiple spaces first (Monday.com uses "DD/MM/YYYY  H:MM:SS" for single-digit hours)
       const raw = r[iDate].replace(/\s+/g,' ').trim();
       const parts = raw.match(/(\d+)\/(\d+)\/(\d+)/);
       if (parts) {
+        // Try DD/MM/YYYY first (Monday.com default)
         const d1 = new Date(`${parts[3]}-${parts[2].padStart(2,'0')}-${parts[1].padStart(2,'0')}`);
         const d2 = new Date(`${parts[3]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`);
+        // Use whichever produces a valid date; prefer d1 (DD/MM/YYYY)
         ts = (!isNaN(d1) ? d1 : d2).getTime();
       }
     }
@@ -896,13 +820,16 @@ function parseCSV(text, filename) {
     }
   }
 
+  // Sort months: if we have real timestamps use them; otherwise fall back to calendar index
   const monthOrder = [...allMonths].sort((a, b) => {
     const ta = monthFirstSeen[a] ?? Infinity;
     const tb = monthFirstSeen[b] ?? Infinity;
     if (ta !== tb) return ta - tb;
+    // same timestamp or both missing — fall back to calendar position
     return MONTH_KNOWN.indexOf(a) - MONTH_KNOWN.indexOf(b);
   });
 
+  // Build items array
   const items = Object.entries(itemMap).map(([name, d]) => ({
     name,
     group: d.group,
@@ -913,6 +840,7 @@ function parseCSV(text, filename) {
     transitions: d.transitions
   })).sort((a,b)=>b.total_hours-a.total_hours);
 
+  // Transition matrix
   const transitions = {};
   for (const d of Object.values(itemMap)) {
     for (const t of d.transitions) {
@@ -921,6 +849,7 @@ function parseCSV(text, filename) {
     }
   }
 
+  // Month avgs
   const monthAvgs = {};
   for (const m of monthOrder) {
     monthAvgs[m] = {};
@@ -930,6 +859,7 @@ function parseCSV(text, filename) {
     }
   }
 
+  // Group avgs
   const groups = [...allGroups];
   const groupAvgs = {};
   for (const g of groups) {
@@ -940,6 +870,7 @@ function parseCSV(text, filename) {
     }
   }
 
+  // Assign colors to any new statuses
   statusOrder.forEach((s,i) => { if (!SC[s]) SC[s] = COLOR_POOL[i % COLOR_POOL.length]; });
 
   const grandTotal = Object.values(statusTotals).reduce((a,b)=>a+b,0);
@@ -948,8 +879,8 @@ function parseCSV(text, filename) {
     filename,
     items,
     statusOrder,
-    statusTotals,
-    grandTotal,
+    statusTotals,         // in minutes
+    grandTotal,           // in minutes
     monthOrder,
     monthAvgs,
     groupAvgs,
@@ -961,6 +892,8 @@ function parseCSV(text, filename) {
     reworkRate: reworkCount / items.length
   };
 }
+
+
 
 // ── COMPUTED AVGS (respects filters) ─────────────────────────────────────────
 function computeAvgs(gf, mf) {
@@ -1011,51 +944,18 @@ function renderKPIs() {
   document.getElementById('kv-items').textContent = items.length;
   const gs = [...new Set(items.map(i=>i.group))];
   document.getElementById('ks-items').textContent = gs.length===1 ? gs[0] : `Across ${gs.length} groups`;
-
-  // “Top status” is the stage with the highest avg time in current filters (more useful than global order)
-  const top = kpiTopStatus(items);
-  document.getElementById('kv-queue').textContent = top ? fmt(top.avg_hours) : 'N/A';
-  document.getElementById('ks-queue').textContent = top ? top.s : 'Largest stage';
-
-  // dominance: share of all tracked time spent in the #1 stage (by minutes share in current view)
-  const dom = kpiDominantStatus(items);
-  document.getElementById('kv-dominance').textContent = dom ? `${Math.round(dom.share*100)}%` : '—';
-
+  const q = a['Creative Queue'];
+  document.getElementById('kv-queue').textContent = q ? fmt(q.avg_hours) : (a[DATA.statusOrder[0]] ? fmt(a[DATA.statusOrder[0]].avg_hours) : 'N/A');
+  // dominance: top status share of grand total for filtered items
+  const ftMins = items.reduce((s,i)=>s+Object.values(i.statuses).reduce((a,b)=>a+b,0)*60,0);
+  const topStatus = DATA.statusOrder[0];
+  const topMins = items.reduce((s,i)=>s+(i.statuses[topStatus]||0)*60,0);
+  document.getElementById('kv-dominance').textContent = pct(topMins,ftMins);
   const rfr = a['Ready for Review'];
   document.getElementById('kv-rfr').textContent = rfr ? fmt(rfr.avg_hours) : 'N/A';
   document.getElementById('ks-rfr').textContent = rfr ? `${rfr.n} items` : '';
-
   const ap = a['Approved'];
   document.getElementById('kv-approve').textContent = ap ? fmt(ap.avg_hours) : 'N/A';
-}
-
-// KPI helper: pick “top status” by avg time per item in the current view
-function kpiTopStatus(items){
-  const t={}, c={};
-  for(const it of items){
-    for(const [s,h] of Object.entries(it.statuses)){
-      if(!selectedStatuses.has(s)) continue;
-      t[s]=(t[s]||0)+(h||0)*60;
-      c[s]=(c[s]||0)+1;
-    }
-  }
-  const avgs=Object.keys(t).map(s=>({s, avg_hours:t[s]/c[s]/60, n:c[s]})).sort((a,b)=>b.avg_hours-a.avg_hours);
-  return avgs[0] || null;
-}
-
-// KPI helper: dominant status by share of time in current view
-function kpiDominantStatus(items){
-  const totals = {};
-  for(const it of items){
-    for(const [s,h] of Object.entries(it.statuses)){
-      if(!selectedStatuses.has(s)) continue;
-      totals[s]=(totals[s]||0)+(h||0)*60;
-    }
-  }
-  const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-  if(!grand) return null;
-  const ranked = Object.entries(totals).map(([s,mins])=>({s, mins, share: mins/grand})).sort((a,b)=>b.mins-a.mins);
-  return ranked[0] || null;
 }
 
 // ── BOTTLENECKS ───────────────────────────────────────────────────────────────
@@ -1072,7 +972,7 @@ function renderBottlenecks() {
     return `<div class="bn-tag" style="border-left-color:${col}" onclick="showBottleneckPanel('${s.replace(/'/g,"\\'")}')">
       <div>
         <div class="bn-badge" style="color:${col}">${labels[i]}</div>
-        <div class="bn-name">${escHtml(s)}</div>
+        <div class="bn-name">${s}</div>
         <div class="bn-val">${fmt(a[s].avg_hours)} avg</div>
       </div>
       <div style="margin-left:8px;text-align:right">
@@ -1105,12 +1005,12 @@ function showBottleneckPanel(status) {
     const pctOfItem = pct(h*60, Object.values(item.statuses).reduce((a,b)=>a+b,0)*60);
     return `<div class="bni-row" onclick="showPanel(${ri}, true)">
       <div class="bni-header">
-        <div class="bni-name">${item.rework ? '<span class="bn-rework-dot"></span>' : ''}${escHtml(item.name)}</div>
+        <div class="bni-name">${item.rework ? '<span class="bn-rework-dot"></span>' : ''}${item.name}</div>
         <div class="bni-time" style="color:${col}">${fmt(h)}</div>
       </div>
       <div class="bni-meta">
         <span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border};font-size:10px;padding:1px 5px">${gShort}</span>
-        <span class="mtag" style="font-size:10px">${escHtml(item.month)}</span>
+        <span class="mtag" style="font-size:10px">${item.month}</span>
         <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${pctOfMax}%;background:${col}"></div></div>
         <span class="bni-pct">${pctOfItem} of item</span>
       </div>
@@ -1120,7 +1020,7 @@ function showBottleneckPanel(status) {
   const html = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
-      <div class="pname" style="margin:0;padding:0">${escHtml(status)}</div>
+      <div class="pname" style="margin:0;padding:0">${status}</div>
     </div>
     <div class="bn-panel-summary">
       <div class="bn-stat-box">
@@ -1136,7 +1036,7 @@ function showBottleneckPanel(status) {
         <div class="bn-stat-val" style="color:var(--amber)">${reworkCount > 0 ? reworkCount : '—'}</div>
       </div>
     </div>
-    <div class="psec">Items Ranked by Time in "${escHtml(status)}"</div>
+    <div class="psec">Items Ranked by Time in "${status}"</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
       Click any row for its full status breakdown${reworkCount > 0 ? ' &nbsp;·&nbsp; <span style="color:var(--amber)">● rework detected</span>' : ''}
     </div>
@@ -1155,7 +1055,7 @@ function renderBars() {
   if (!ss.length) { el.innerHTML='<div class="no-r">No data</div>'; return; }
   el.innerHTML = ss.map(s=>`
     <div class="srow">
-      <div class="sname">${escHtml(s)}</div>
+      <div class="sname">${s}</div>
       <div class="btrack"><div class="bfill" style="width:${(a[s].avg_hours/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div>
       <div class="sval">${fmt(a[s].avg_hours)}<span class="sn">n=${a[s].n}</span></div>
     </div>`).join('');
@@ -1198,7 +1098,7 @@ function renderMonthChart() {
     data:{ labels:months, datasets:ranked.map(s=>({ label:s, data:months.map(m=>+(DATA.monthAvgs[m]?.[s]?.avg_hours||0).toFixed(1)), borderColor:statusColor(s), backgroundColor:statusColor(s)+'18', borderWidth:2, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:statusColor(s), pointBorderColor:'#fff', pointBorderWidth:2, tension:0.35, fill:false })) },
     options:{ responsive:true, interaction:{mode:'index',intersect:false},
       scales:{ x:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11}},grid:{color:'#f1f3f5'}}, y:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11},callback:v=>fmt(v)},grid:{color:'#f1f3f5'}} },
-      plugins:{ legend:{labels:{color:'#3d4350',font:{family:'Inter',size:11},boxWidth:10,padding:10}}, tooltip:baseTooltip({title:items=>`${items[0]?.label}`}) }
+      plugins:{ legend:{labels:{color:'#3d4350',font:{family:'Inter',size:11},boxWidth:10,padding:10}}, tooltip:baseTooltip({title:items=>`${items[0]?.label} · ${items.reduce((s,i)=>s+(DATA.monthAvgs[items[0]?.label]?.[ranked[i.datasetIndex]]?.n||0),0)} items`}) }
     }
   });
 }
@@ -1224,7 +1124,7 @@ function renderGroupChart() {
     options:{ responsive:true, interaction:{mode:'index',intersect:false},
       scales:{ x:{ticks:{color:'#94a3b8',font:{family:'Inter',size:10},maxRotation:30},grid:{color:'#f1f3f5'}}, y:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11},callback:v=>fmt(v)},grid:{color:'#f1f3f5'}} },
       plugins:{ legend:{labels:{color:'#3d4350',font:{family:'Inter',size:11},boxWidth:10}},
-        tooltip:baseTooltip({title:items=>`Status: ${items[0]?.label}`})
+        tooltip:baseTooltip({title:items=>`Status: ${items[0]?.label}`, afterBody:items=>{ const vs=items.filter(i=>i.raw>0); if(vs.length<2)return[]; const f=vs.reduce((a,b)=>a.raw<b.raw?a:b),s=vs.reduce((a,b)=>a.raw>b.raw?a:b); return['',`⬇ Fastest: ${f.dataset.label} (${fmt(f.raw)})`,`⬆ Slowest: ${s.dataset.label} (${fmt(s.raw)})`]; }})
       }
     }
   });
@@ -1232,15 +1132,17 @@ function renderGroupChart() {
 
 // ── TRANSITIONS ───────────────────────────────────────────────────────────────
 function renderTransitions() {
+  // Identify "backward" transitions (rework-inducing)
+  // A transition from B to A is a rework loop if A typically comes before B
   const statusIdx = {};
   DATA.statusOrder.forEach((s,i)=>statusIdx[s]=i);
   const sorted = Object.entries(DATA.transitions).map(([f,tos])=>({f,tos,tot:Object.values(tos).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.tot-a.tot).slice(0,9);
   document.getElementById('trans-list').innerHTML = sorted.map(({f,tos})=>{
     const mx=Math.max(...Object.values(tos));
     const top=Object.entries(tos).sort((a,b)=>b[1]-a[1]).slice(0,4);
-    return `<div class="trow"><div class="tfrom">${escHtml(f)}</div><div class="ttos">${top.map(([t,n])=>{
+    return `<div class="trow"><div class="tfrom">${f}</div><div class="ttos">${top.map(([t,n])=>{
       const isRework = (statusIdx[t]!==undefined && statusIdx[f]!==undefined && statusIdx[t]<statusIdx[f]) || t===f;
-      return `<div class="tto"><div class="tbar" style="width:${Math.max(6,n/mx*60)}px;background:${statusColor(t)}"></div><span style="color:${statusColor(t)};font-weight:500">${escHtml(t)}</span>${isRework?'<span style="color:var(--amber);font-size:10px;margin-left:2px">↺</span>':''}<span class="tcnt">${n}×</span></div>`;
+      return `<div class="tto"><div class="tbar" style="width:${Math.max(6,n/mx*60)}px;background:${statusColor(t)}"></div><span style="color:${statusColor(t)};font-weight:500">${t}</span>${isRework?'<span style="color:var(--amber);font-size:10px;margin-left:2px">↺</span>':''}<span class="tcnt">${n}×</span></div>`;
     }).join('')}</div></div>`;
   }).join('');
 }
@@ -1259,10 +1161,10 @@ function setTableSort(mode) {
 function buildDropdown() {
   const list = document.getElementById('dd-items-list');
   list.innerHTML = DATA.statusOrder.map(s=>`
-    <div class="dd-item" onclick="toggleStatus('${s.replace(/'/g,"\\'")}',event)">
-      <input type="checkbox" id="chk-${s.replace(/\s/g,'_')}" ${selectedStatuses.has(s)?'checked':''} onclick="toggleStatus('${s.replace(/'/g,"\\'")}',event)">
+    <div class="dd-item" onclick="toggleStatus('${s}',event)">
+      <input type="checkbox" id="chk-${s.replace(/\s/g,'_')}" ${selectedStatuses.has(s)?'checked':''} onclick="toggleStatus('${s}',event)">
       <div class="dd-dot" style="background:${statusColor(s)}"></div>
-      <span>${escHtml(s)}</span>
+      <span>${s}</span>
     </div>`).join('');
 }
 function toggleStatus(s,e) {
@@ -1271,10 +1173,10 @@ function toggleStatus(s,e) {
   else selectedStatuses.add(s);
   const chk=document.getElementById('chk-'+s.replace(/\s/g,'_'));
   if(chk) chk.checked=selectedStatuses.has(s);
-  updateDropdownLabel(); renderItems(); renderBottlenecks(); renderBars();
+  updateDropdownLabel(); renderItems();
 }
-function selectAllStatuses() { selectedStatuses=new Set(DATA.statusOrder); buildDropdown(); updateDropdownLabel(); renderAll(); }
-function clearAllStatuses()  { selectedStatuses=new Set([DATA.statusOrder[0]]); buildDropdown(); updateDropdownLabel(); renderAll(); }
+function selectAllStatuses() { selectedStatuses=new Set(DATA.statusOrder); buildDropdown(); updateDropdownLabel(); renderItems(); }
+function clearAllStatuses()  { selectedStatuses=new Set([DATA.statusOrder[0]]); buildDropdown(); updateDropdownLabel(); renderItems(); }
 function updateDropdownLabel() {
   const all=selectedStatuses.size===DATA.statusOrder.length;
   document.getElementById('status-trigger-label').textContent = all ? 'Filter by Status' : `${selectedStatuses.size} Status${selectedStatuses.size!==1?'es':''} Selected`;
@@ -1306,13 +1208,13 @@ function renderItems() {
     const ri=DATA.items.indexOf(item);
     const ss=Object.entries(item.statuses).sort((a,b)=>b[1]-a[1]);
     const mx=Math.max(...ss.map(s=>s[1]));
-    const sparks=ss.map(([s,h])=>`<div class="spark" style="height:${Math.max(3,Math.round(h/mx*18))}px;width:5px;background:${statusColor(s)};${!selectedStatuses.has(s)?'opacity:0.2':''}" title="${escHtml(s)}: ${fmt(h)}"></div>`).join('');
+    const sparks=ss.map(([s,h])=>`<div class="spark" style="height:${Math.max(3,Math.round(h/mx*18))}px;width:5px;background:${statusColor(s)};${!selectedStatuses.has(s)?'opacity:0.2':''}" title="${s}: ${fmt(h)}"></div>`).join('');
     const gc=GC[item.group]||{bg:'#f3f4f6',text:'#374151',border:'#d1d5db'};
     const gShort=item.group==='Creative Queue (Up Next)'?'CQ (Up Next)':item.group==='Creative Production'?'Creative Prod':'Sandbox';
     return `<tr onclick="showPanel(${ri})" class="${item.rework?'rework-row':''}">
-      <td class="iname">${escHtml(item.name)}</td>
-      <td><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${escHtml(gShort)}</span></td>
-      <td><span class="mtag">${escHtml(item.month)}</span></td>
+      <td class="iname">${item.name}</td>
+      <td><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${gShort}</span></td>
+      <td><span class="mtag">${item.month}</span></td>
       <td><div class="sparkrow">${sparks}</div></td>
       <td class="itotal">${fmt(item.total_hours)}</td>
     </tr>`;
@@ -1320,7 +1222,8 @@ function renderItems() {
 }
 
 // ── DETAIL PANEL ──────────────────────────────────────────────────────────────
-let _panelStack = [];
+// Simple history stack so drilling item→bottleneck list has a "← Back" button
+let _panelStack = []; // each entry is an HTML string of previous panel content
 
 function _setPanelContent(html, pushCurrent) {
   const pc = document.getElementById('panel-content');
@@ -1328,10 +1231,11 @@ function _setPanelContent(html, pushCurrent) {
   pc.innerHTML = html;
   pc.scrollTop = 0;
   document.getElementById('panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('open');
 }
 
 function _panelBackBtn(label) {
-  return `<button class="bn-back" onclick="panelBack()">← ${escHtml(label)}</button>`;
+  return `<button class="bn-back" onclick="panelBack()">← ${label}</button>`;
 }
 
 function panelBack() {
@@ -1354,18 +1258,18 @@ function showPanel(i, fromBottleneck) {
         return item.transitions.map(({from:f,to:t})=>{
           const isRework=seen.has(f);
           seen.add(f);
-          return `<div class="rh-row"><span class="rh-from">${escHtml(f)}</span><span class="rh-arrow">→</span><span class="rh-to">${escHtml(t)}</span>${isRework?'<span class="rh-rework">↺ rework</span>':''}</div>`;
+          return `<div class="rh-row"><span class="rh-from">${f}</span><span class="rh-arrow">→</span><span class="rh-to">${t}</span>${isRework?'<span class="rh-rework">↺ rework</span>':''}</div>`;
         }).join('');
       })()}
     </div>` : '';
   const backBtn = fromBottleneck ? _panelBackBtn('Back to items') : '';
   const html = `
     ${backBtn}
-    <div class="pname">${escHtml(item.name)}</div>
-    <div class="pmeta"><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${escHtml(item.group)}</span><span>·</span><span>${escHtml(item.month)}</span></div>
+    <div class="pname">${item.name}</div>
+    <div class="pmeta"><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${item.group}</span><span>·</span><span>${item.month}</span></div>
     ${item.rework?'<div class="prework-flag">↺ Rework Detected — this item re-entered one or more statuses</div>':''}
     <div class="psec">Time Per Status</div>
-    <div class="pbars">${ss.map(([s,h])=>`<div class="pbrow"><div class="pbname">${escHtml(s)}</div><div class="btrack"><div class="bfill" style="width:${(h/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div><div class="pbval" style="color:${statusColor(s)}">${fmt(h)}</div></div>`).join('')}</div>
+    <div class="pbars">${ss.map(([s,h])=>`<div class="pbrow"><div class="pbname">${s}</div><div class="btrack"><div class="bfill" style="width:${(h/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div><div class="pbval" style="color:${statusColor(s)}">${fmt(h)}</div></div>`).join('')}</div>
     <div class="ptotal"><span>Total time tracked</span><strong>${fmt(item.total_hours)}</strong></div>
     ${transHtml}`;
   _setPanelContent(html, !!fromBottleneck);
@@ -1373,433 +1277,26 @@ function showPanel(i, fromBottleneck) {
 
 function closePanel() {
   document.getElementById('panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('open');
   _panelStack = [];
 }
 
-// ── KPI DRILLDOWNS (MARKETING/CREATIVE BEST-PRACTICE) ────────────────────────
-//
-// Philosophy:
-// - Give the “why” + “so what” + the next best click.
-// - Always include a *distribution* (median/p75/p90), not just averages.
-// - Tie to creative ops signals: rework rate, queueing, review/approval SLAs, bottlenecks.
-// - Provide fast actions: filter to group/month, isolate status, open bottleneck panel.
+/* Click-out close */
+document.getElementById('panel-overlay').addEventListener('click', closePanel);
 
-function viewItems(){ return filteredItems(); }
-
-function viewStatusTotals(items){
-  const totals = {};
-  for(const it of items){
-    for(const [s,h] of Object.entries(it.statuses)){
-      if(!selectedStatuses.has(s)) continue;
-      totals[s]=(totals[s]||0)+(h||0)*60;
-    }
+/* ESC key close */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const isOpen = document.getElementById('panel')?.classList.contains('open');
+    if (isOpen) closePanel();
   }
-  return totals;
-}
-
-function drillPanelShell(title, chipsHtml, bodyHtml, pushCurrent=false){
-  const html = `
-    ${_panelStack.length ? _panelBackBtn('Back') : ''}
-    <div class="pname">${escHtml(title)}</div>
-    ${chipsHtml ? `<div class="pmeta">${chipsHtml}</div>` : ''}
-    ${bodyHtml}
-  `;
-  _setPanelContent(html, pushCurrent);
-}
-
-/* KPI 1: Items Analyzed
-   Best drill: volume + throughput proxy (cycle time), rework rate, breakdown by group/month,
-   and the “top slowest items” list so you can go straight to problem children.
-*/
-function drillKPI_Items(){
-  const items = viewItems();
-  const total = items.length;
-  const rw = items.filter(i=>i.rework).length;
-  const cycle = items.map(i=>i.total_hours);
-  const med = quantile(cycle,0.5), p75 = quantile(cycle,0.75), p90 = quantile(cycle,0.9);
-
-  const byGroup = {};
-  const byMonth = {};
-  for(const it of items){
-    byGroup[it.group]=(byGroup[it.group]||0)+1;
-    byMonth[it.month]=(byMonth[it.month]||0)+1;
-  }
-
-  const groupRows = Object.entries(byGroup).sort((a,b)=>b[1]-a[1]).map(([g,n])=>`
-    <div class="bni-row" onclick="setGroupFilter('${String(g).replace(/'/g,"\\'")}'); closePanel();">
-      <div class="bni-header">
-        <div class="bni-name">${escHtml(g)}</div>
-        <div class="bni-time" style="color:var(--red)">${n}</div>
-      </div>
-      <div class="bni-meta"><span class="mtag" style="font-size:10px">Click to filter Group</span></div>
-    </div>`).join('') || `<div class="no-r">No items in current view</div>`;
-
-  const monthOrder = DATA.monthOrder || [];
-  const monthRows = Object.entries(byMonth).sort((a,b)=>monthOrder.indexOf(a[0]) - monthOrder.indexOf(b[0])).map(([m,n])=>`
-    <div class="bni-row" onclick="setMonthFilter('${String(m).replace(/'/g,"\\'")}'); closePanel();">
-      <div class="bni-header">
-        <div class="bni-name">${escHtml(m)}</div>
-        <div class="bni-time" style="color:var(--blue)">${n}</div>
-      </div>
-      <div class="bni-meta"><span class="mtag" style="font-size:10px">Click to filter Month</span></div>
-    </div>`).join('') || `<div class="no-r">No months in current view</div>`;
-
-  const slowest = [...items].sort((a,b)=>b.total_hours-a.total_hours).slice(0,20).map(it=>{
-    const ri = DATA.items.indexOf(it);
-    return `<div class="bni-row" onclick="showPanel(${ri})">
-      <div class="bni-header">
-        <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${escHtml(it.name)}</div>
-        <div class="bni-time" style="color:var(--amber)">${fmt(it.total_hours)}</div>
-      </div>
-      <div class="bni-meta"><span class="mtag" style="font-size:10px">${escHtml(it.group)} · ${escHtml(it.month)}</span></div>
-    </div>`;
-  }).join('');
-
-  const chips = `
-    <span class="pchip"><b>${total}</b> items</span>
-    <span class="pchip"><b>${pct(rw,total)}</b> rework</span>
-    <span class="pchip"><b>${med?fmt(med):'—'}</b> median cycle</span>
-  `;
-
-  const body = `
-    <div class="psec">Cycle time distribution</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-      <span class="pchip"><b>${med?fmt(med):'—'}</b> P50</span>
-      <span class="pchip"><b>${p75?fmt(p75):'—'}</b> P75</span>
-      <span class="pchip"><b>${p90?fmt(p90):'—'}</b> P90</span>
-    </div>
-    <div style="font-size:11px;color:var(--muted)">Use P75/P90 to set realistic delivery expectations and flag outliers.</div>
-
-    <div class="psec">Breakdown by Group</div>
-    <div>${groupRows}</div>
-
-    <div class="psec">Breakdown by Month</div>
-    <div>${monthRows}</div>
-
-    <div class="psec">Slowest items (click for breakdown)</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">These are your best “where to start” investigations.</div>
-    <div>${slowest || '<div class="no-r">No items</div>'}</div>
-  `;
-  drillPanelShell('Items Analyzed', chips, body, false);
-}
-
-/* KPI 2: Avg in Top Status
-   Best drill: identify the stage with highest avg time (queue/bottleneck),
-   show distribution and which items are stuck, and give 1-click to open bottleneck list.
-*/
-function drillKPI_TopStatus(){
-  const items = viewItems();
-  const top = kpiTopStatus(items);
-  if(!top){ showStatus('err','No data in current view.'); return; }
-  const s = top.s;
-  const col = statusColor(s);
-
-  const times = items.map(it => it.statuses[s]||0).filter(h=>h>0);
-  const med = quantile(times,0.5), p75 = quantile(times,0.75), p90 = quantile(times,0.9);
-
-  // “Stuck list” = top spenders in this stage
-  const ranked = [...items].filter(it => (it.statuses[s]||0)>0).sort((a,b)=>(b.statuses[s]||0)-(a.statuses[s]||0)).slice(0,25).map(it=>{
-    const ri = DATA.items.indexOf(it);
-    const h = it.statuses[s]||0;
-    const share = pct(h*60, itemTotalMinutes(it));
-    return `<div class="bni-row" onclick="showPanel(${ri})">
-      <div class="bni-header">
-        <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${escHtml(it.name)}</div>
-        <div class="bni-time" style="color:${col}">${fmt(h)}</div>
-      </div>
-      <div class="bni-meta">
-        <span class="mtag" style="font-size:10px">${escHtml(it.group)} · ${escHtml(it.month)}</span>
-        <span class="mtag" style="font-size:10px;margin-left:auto">${share} of item</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  const chips = `
-    <span class="pchip"><b style="color:${col}">${escHtml(s)}</b> top stage</span>
-    <span class="pchip"><b>${fmt(top.avg_hours)}</b> avg</span>
-    <span class="pchip"><b>${top.n}</b> items</span>
-  `;
-
-  const body = `
-    <div class="pbtn-row">
-      <button class="pbtn" onclick="showBottleneckPanel('${s.replace(/'/g,"\\'")}')">Open bottleneck view →</button>
-      <button class="pbtn" onclick="setStatusFilterSingle('${s.replace(/'/g,"\\'")}')">Isolate this status</button>
-    </div>
-
-    <div class="psec">Time distribution in "${escHtml(s)}"</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-      <span class="pchip"><b>${med?fmt(med):'—'}</b> P50</span>
-      <span class="pchip"><b>${p75?fmt(p75):'—'}</b> P75</span>
-      <span class="pchip"><b>${p90?fmt(p90):'—'}</b> P90</span>
-    </div>
-    <div style="font-size:11px;color:var(--muted)">This is the stage most likely driving delivery dates in the current view.</div>
-
-    <div class="psec">Most impacted items</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Click an item to see which statuses are consuming time.</div>
-    <div>${ranked || '<div class="no-r">No items</div>'}</div>
-  `;
-  drillPanelShell('Avg in Top Status', chips, body, false);
-}
-
-/* KPI 3: Top Status Dominance
-   Best drill: show time-share across statuses (portfolio mix),
-   flag concentration risk (one stage consuming most time),
-   and allow click-to-bottleneck.
-*/
-function drillKPI_Dominance(){
-  const items = viewItems();
-  const totals = viewStatusTotals(items);
-  const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-  if(!grand){ showStatus('err','No tracked time in current view.'); return; }
-
-  const ranked = Object.keys(totals).map(s=>({s, mins:totals[s], share:totals[s]/grand})).sort((a,b)=>b.share-a.share);
-  const top = ranked[0];
-  const concentration = top.share; // simple, interpretable
-
-  const rows = ranked.slice(0,10).map(r=>{
-    const col = statusColor(r.s);
-    const w = r.share*100;
-    return `
-      <div class="bni-row" onclick="showBottleneckPanel('${r.s.replace(/'/g,"\\'")}')">
-        <div class="bni-header">
-          <div class="bni-name" style="display:flex;align-items:center;gap:8px">
-            <span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>
-            ${escHtml(r.s)}
-          </div>
-          <div class="bni-time" style="color:${col}">${Math.round(w)}%</div>
-        </div>
-        <div class="bni-meta">
-          <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${w.toFixed(1)}%;background:${col}"></div></div>
-          <span class="bni-pct">${fmt(r.mins/60)}</span>
-        </div>
-      </div>`;
-  }).join('');
-
-  const riskLabel =
-    concentration >= 0.55 ? 'High concentration (one stage dominates)' :
-    concentration >= 0.40 ? 'Moderate concentration' :
-    'Healthy mix';
-
-  const chips = `
-    <span class="pchip"><b>${fmt(grand/60)}</b> total tracked</span>
-    <span class="pchip"><b style="color:${statusColor(top.s)}">${escHtml(top.s)}</b> #1</span>
-    <span class="pchip"><b>${Math.round(concentration*100)}%</b> dominance</span>
-  `;
-
-  const body = `
-    <div class="psec">Interpretation</div>
-    <div style="font-size:11px;color:var(--text2);line-height:1.5">
-      <b>${escHtml(riskLabel)}</b><br>
-      If dominance is high, improving this single stage (clearer briefs, fewer handoffs, faster approvals) usually yields the biggest cycle-time reduction.
-    </div>
-
-    <div class="psec">Time share by status (click to drill)</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Click any row to open the bottleneck panel for that status.</div>
-    <div>${rows || '<div class="no-r">No statuses</div>'}</div>
-  `;
-  drillPanelShell('Top Status Dominance', chips, body, false);
-}
-
-/* KPI 4: Avg Ready for Review
-   Best drill: treat RfR like a QA “handoff waiting” KPI.
-   - Distribution
-   - SLA-style buckets (<=24h, 24–48h, 48–72h, >72h)
-   - Items most impacted
-*/
-function drillKPI_RfR(){
-  drillKPI_StatusSLA('Ready for Review', 'Avg Ready for Review', 'var(--purple)', {
-    slas: [24,48,72],
-    guidance: 'Long “Ready for Review” often signals reviewer availability constraints, unclear owners, or too-large batch reviews.'
-  });
-}
-
-/* KPI 5: Avg Time to Approve
-   Best drill: approval “throughput gate” KPI.
-   - Approved-time distribution (how long items live in approved state before moving on)
-   - Plus a practical “pre-approval cycle time” proxy: total time minus approved time (for items that reached approved)
-*/
-function drillKPI_Approve(){
-  const title = 'Avg Time to Approve';
-  const statusName = 'Approved';
-  const accent = 'var(--green)';
-  const items = viewItems().filter(it => (it.statuses[statusName]||0) > 0);
-
-  if(!items.length){
-    drillPanelShell(title, `<span class="pchip"><b>0</b> items</span>`, `<div class="no-r">No items reached "${escHtml(statusName)}" in the current view.</div>`, false);
-    return;
-  }
-
-  const approvedTimes = items.map(it => it.statuses[statusName]||0).filter(h=>h>0);
-  const medA = quantile(approvedTimes,0.5), p75A = quantile(approvedTimes,0.75), p90A = quantile(approvedTimes,0.9);
-
-  // Pre-approval cycle time proxy
-  const pre = items.map(it => Math.max(0, it.total_hours - (it.statuses[statusName]||0)));
-  const medP = quantile(pre,0.5), p75P = quantile(pre,0.75), p90P = quantile(pre,0.9);
-
-  const worstPre = [...items].sort((a,b)=>{
-    const pa = Math.max(0, a.total_hours - (a.statuses[statusName]||0));
-    const pb = Math.max(0, b.total_hours - (b.statuses[statusName]||0));
-    return pb - pa;
-  }).slice(0,25).map(it=>{
-    const ri=DATA.items.indexOf(it);
-    const preH = Math.max(0, it.total_hours - (it.statuses[statusName]||0));
-    const apprH = it.statuses[statusName]||0;
-    return `<div class="bni-row" onclick="showPanel(${ri})">
-      <div class="bni-header">
-        <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${escHtml(it.name)}</div>
-        <div class="bni-time" style="color:var(--amber)">${fmt(preH)}</div>
-      </div>
-      <div class="bni-meta">
-        <span class="mtag" style="font-size:10px">Pre-approval</span>
-        <span class="mtag" style="font-size:10px;margin-left:6px">· Approved: ${fmt(apprH)}</span>
-        <span class="mtag" style="font-size:10px;margin-left:auto">${escHtml(it.group)} · ${escHtml(it.month)}</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  const chips = `
-    <span class="pchip"><b>${items.length}</b> items approved</span>
-    <span class="pchip"><b>${medP?fmt(medP):'—'}</b> median pre-approval</span>
-    <span class="pchip"><b>${medA?fmt(medA):'—'}</b> median approved-time</span>
-  `;
-
-  const body = `
-    <div class="pbtn-row">
-      <button class="pbtn" onclick="showBottleneckPanel('${statusName}')">Open approved-stage items →</button>
-      <button class="pbtn" onclick="setStatusFilterSingle('${statusName}')">Isolate "${statusName}"</button>
-    </div>
-
-    <div class="psec">Pre-approval cycle time (proxy)</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-      <span class="pchip"><b>${medP?fmt(medP):'—'}</b> P50</span>
-      <span class="pchip"><b>${p75P?fmt(p75P):'—'}</b> P75</span>
-      <span class="pchip"><b>${p90P?fmt(p90P):'—'}</b> P90</span>
-    </div>
-    <div style="font-size:11px;color:var(--muted)">This estimates how long work took *to reach approval* (total tracked time minus time spent after approval).</div>
-
-    <div class="psec">Approved-time distribution</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-      <span class="pchip"><b>${medA?fmt(medA):'—'}</b> P50</span>
-      <span class="pchip"><b>${p75A?fmt(p75A):'—'}</b> P75</span>
-      <span class="pchip"><b>${p90A?fmt(p90A):'—'}</b> P90</span>
-    </div>
-    <div style="font-size:11px;color:var(--muted)">If this is high, it may indicate downstream handoffs (publishing, trafficking, stakeholder “final checks”).</div>
-
-    <div class="psec">Longest pre-approval items (click for breakdown)</div>
-    <div>${worstPre || '<div class="no-r">No items</div>'}</div>
-  `;
-  drillPanelShell(title, chips, body, false);
-}
-
-// Generic SLA drill for a status (used for Ready for Review; can reuse elsewhere)
-function drillKPI_StatusSLA(statusName, title, accentCssVar, opts){
-  const accent = accentCssVar.startsWith('var(') ? accentCssVar : `var(${accentCssVar})`;
-  const itemsAll = viewItems();
-  const items = itemsAll.filter(it => (it.statuses[statusName]||0) > 0);
-  const reworkInStage = items.filter(i=>i.rework).length;
-
-  const times = items.map(it => it.statuses[statusName]||0).filter(h=>h>0);
-  const med = quantile(times,0.5), p75 = quantile(times,0.75), p90 = quantile(times,0.9);
-
-  const slas = opts?.slas || [24,48,72];
-  const b1 = slas[0], b2 = slas[1], b3 = slas[2];
-  const buckets = { le1:0, b12:0, b23:0, gt3:0 };
-  for(const h of times){
-    if(h<=b1) buckets.le1++;
-    else if(h<=b2) buckets.b12++;
-    else if(h<=b3) buckets.b23++;
-    else buckets.gt3++;
-  }
-
-  const bucketHtml = `
-    <div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr 1fr">
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">≤ ${b1}h</div>
-        <div class="bn-stat-val" style="color:${accent}">${pct(buckets.le1, times.length)}</div>
-      </div>
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">${b1}–${b2}h</div>
-        <div class="bn-stat-val" style="color:${accent}">${pct(buckets.b12, times.length)}</div>
-      </div>
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">${b2}–${b3}h</div>
-        <div class="bn-stat-val" style="color:${accent}">${pct(buckets.b23, times.length)}</div>
-      </div>
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">&gt; ${b3}h</div>
-        <div class="bn-stat-val" style="color:var(--amber)">${pct(buckets.gt3, times.length)}</div>
-      </div>
-    </div>`;
-
-  const worst = [...items].sort((a,b)=>(b.statuses[statusName]||0)-(a.statuses[statusName]||0)).slice(0,25).map(it=>{
-    const ri = DATA.items.indexOf(it);
-    const h = it.statuses[statusName]||0;
-    return `<div class="bni-row" onclick="showPanel(${ri})">
-      <div class="bni-header">
-        <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${escHtml(it.name)}</div>
-        <div class="bni-time" style="color:${accent}">${fmt(h)}</div>
-      </div>
-      <div class="bni-meta">
-        <span class="mtag" style="font-size:10px">${escHtml(it.group)} · ${escHtml(it.month)}</span>
-        <span class="mtag" style="font-size:10px;margin-left:auto">${pct(h*60, itemTotalMinutes(it))} of item</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  const chips = `
-    <span class="pchip"><b>${items.length}</b> items w/ time</span>
-    <span class="pchip"><b>${med?fmt(med):'—'}</b> median</span>
-    <span class="pchip"><b>${reworkInStage?pct(reworkInStage,items.length):'0%'}</b> rework</span>
-  `;
-
-  const body = `
-    <div class="pbtn-row">
-      <button class="pbtn" onclick="showBottleneckPanel('${statusName.replace(/'/g,"\\'")}')">Open stage items →</button>
-      <button class="pbtn" onclick="setStatusFilterSingle('${statusName.replace(/'/g,"\\'")}')">Isolate "${escHtml(statusName)}"</button>
-    </div>
-
-    <div class="psec">SLA-style buckets</div>
-    ${bucketHtml}
-    <div style="font-size:11px;color:var(--muted);margin-top:6px">${escHtml(opts?.guidance || '')}</div>
-
-    <div class="psec">Distribution</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-      <span class="pchip"><b>${med?fmt(med):'—'}</b> P50</span>
-      <span class="pchip"><b>${p75?fmt(p75):'—'}</b> P75</span>
-      <span class="pchip"><b>${p90?fmt(p90):'—'}</b> P90</span>
-    </div>
-
-    <div class="psec">Most impacted items (click for breakdown)</div>
-    <div>${worst || '<div class="no-r">No items</div>'}</div>
-  `;
-  drillPanelShell(title, chips, body, false);
-}
-
-// Bind KPI clicks
-function bindKPIDrills(){
-  const elItems = document.getElementById('kpi-items');
-  const elTop   = document.getElementById('kpi-topstatus');
-  const elDom   = document.getElementById('kpi-dominance');
-  const elRfr   = document.getElementById('kpi-rfr');
-  const elAppr  = document.getElementById('kpi-approve');
-
-  if (elItems) elItems.onclick = () => { _panelStack=[]; drillKPI_Items(); };
-  if (elTop)   elTop.onclick   = () => { _panelStack=[]; drillKPI_TopStatus(); };
-  if (elDom)   elDom.onclick   = () => { _panelStack=[]; drillKPI_Dominance(); };
-  if (elRfr)   elRfr.onclick   = () => { _panelStack=[]; drillKPI_RfR(); };
-  if (elAppr)  elAppr.onclick  = () => { _panelStack=[]; drillKPI_Approve(); };
-}
+});
 
 // ── RENDER ALL ────────────────────────────────────────────────────────────────
 function renderAll(){
-  renderReworkBanner();
-  renderKPIs();
-  renderBars();
-  renderGroupChart();
-  renderMonthChart();
-  renderTransitions();
-  renderBottlenecks();
-  renderItems();
+  renderReworkBanner(); renderKPIs(); renderBars();
+  renderGroupChart(); renderMonthChart();
+  renderTransitions(); renderBottlenecks(); renderItems();
 }
 
 // ── STARTUP ───────────────────────────────────────────────────────────────────
@@ -1807,4 +1304,3 @@ goToLanding();
 </script>
 </body>
 </html>
-```
