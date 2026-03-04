@@ -601,20 +601,33 @@ function confirmSave(){
 function handleFileUpload(input){
   const file = input.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try{
-      const csv = e.target.result;
-      DATA = parseCSV(csv, file.name);
-      _pendingCSV = csv; _pendingFilename = file.name;
-      document.getElementById('upload-text').textContent = file.name;
-      document.getElementById('upload-zone').classList.add('has-file');
-      document.getElementById('header-sub').textContent = `${file.name} · Marketing Leadership`;
-      showStatus('ok',`Loaded ${file.name} — ${DATA.totalItems} items, ${DATA.statusOrder.length} statuses`);
-      initDashboard(true);
-    } catch(err){ showStatus('err','Parse error: '+err.message); console.error(err); }
+
+  function tryParse(csvText){
+    DATA = parseCSV(csvText, file.name);
+    _pendingCSV = csvText; _pendingFilename = file.name;
+    document.getElementById('upload-text').textContent = file.name;
+    document.getElementById('upload-zone').classList.add('has-file');
+    document.getElementById('header-sub').textContent = `${file.name} · Marketing Leadership`;
+    showStatus('ok',`Loaded ${file.name} — ${DATA.totalItems} items, ${DATA.statusOrder.length} statuses`);
+    initDashboard(true);
+  }
+
+  // Read as UTF-8 first; if parse fails or produces no status rows, retry with latin-1
+  const r1 = new FileReader();
+  r1.onload = e => {
+    try {
+      tryParse(e.target.result);
+    } catch(err) {
+      // UTF-8 failed — try latin-1 (handles Monday.com exports with accented chars)
+      const r2 = new FileReader();
+      r2.onload = e2 => {
+        try { tryParse(e2.target.result); }
+        catch(err2){ showStatus('err','Parse error: '+err2.message); console.error(err2); }
+      };
+      r2.readAsText(file, 'windows-1252');
+    }
   };
-  reader.readAsText(file);
+  r1.readAsText(file, 'UTF-8');
 }
 
 function showStatus(type,msg){
@@ -673,10 +686,21 @@ function parseCSV(text, filename) {
     return cells;
   }
 
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
-  // Remove BOM
-  if (lines[0].charCodeAt(0) === 0xFEFF || lines[0].startsWith('\uFEFF')) lines[0] = lines[0].slice(1);
-  const headers = parseRow(lines[0]).map(h => h.replace(/^\uFEFF/,'').trim());
+  // Normalize line endings (\r\n and bare \r both → \n), then split
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+
+  // Skip any leading junk lines (e.g. rows of just commas) before the real header.
+  // The real header is the first line that contains a known Monday.com column name.
+  const HEADER_SIGNAL = ["Item's name", "Last activity date", "Who made the change"];
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+    if (HEADER_SIGNAL.some(s => lines[i].includes(s))) { headerIdx = i; break; }
+  }
+  const cleanLines = lines.slice(headerIdx).filter(l => l.trim());
+
+  // Remove BOM from first line
+  if (cleanLines[0].charCodeAt(0) === 0xFEFF || cleanLines[0].startsWith('\uFEFF')) cleanLines[0] = cleanLines[0].slice(1);
+  const headers = parseRow(cleanLines[0]).map(h => h.replace(/^\uFEFF/,'').trim());
 
   const col = h => { const i = headers.findIndex(x => x === h); return i; };
   const iName   = col("Item's name");
@@ -690,7 +714,7 @@ function parseCSV(text, filename) {
 
   if (iName === -1 || iFrom === -1) throw new Error("Required columns not found. Make sure this is a Monday.com Activity Log CSV.");
 
-  const rows = lines.slice(1).map(l => parseRow(l));
+  const rows = cleanLines.slice(1).map(l => parseRow(l));
   const statusRows = rows.filter(r => r[iType] === 'color' && r[iName2] === 'Status');
 
   if (!statusRows.length) throw new Error("No Status change rows found (Type='color', Name='Status').");
@@ -744,8 +768,8 @@ function parseCSV(text, filename) {
     if (!month) continue;
     let ts = Infinity;
     if (iDate !== -1 && r[iDate]) {
-      // parse "DD/MM/YYYY HH:MM:SS" or "MM/DD/YYYY HH:MM:SS" — try both
-      const raw = r[iDate].trim();
+      // parse "DD/MM/YYYY HH:MM:SS" — normalize multiple spaces first (Monday.com uses "DD/MM/YYYY  H:MM:SS" for single-digit hours)
+      const raw = r[iDate].replace(/\s+/g,' ').trim();
       const parts = raw.match(/(\d+)\/(\d+)\/(\d+)/);
       if (parts) {
         // Try DD/MM/YYYY first (Monday.com default)
