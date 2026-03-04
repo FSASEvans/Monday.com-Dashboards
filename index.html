@@ -533,8 +533,40 @@ function parseCSV(text, filename) {
 
   // Month order
   const MONTH_KNOWN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const monthOrder = [...allMonths].sort((a,b) => MONTH_KNOWN.indexOf(a)-MONTH_KNOWN.indexOf(b));
-  if (monthOrder.every(m=>MONTH_KNOWN.indexOf(m)===-1)) monthOrder.sort(); // fallback alpha
+
+  // Build a map of month -> earliest date seen in the CSV so we sort by actual chronological order,
+  // not just calendar-month index (handles Dec→Jan→Feb spanning a year-boundary correctly).
+  const iDate = col("Last activity date & time");
+  const monthFirstSeen = {}; // month name -> earliest JS timestamp
+  for (const r of rows) {
+    const month = r[iMonth];
+    if (!month) continue;
+    let ts = Infinity;
+    if (iDate !== -1 && r[iDate]) {
+      // parse "DD/MM/YYYY HH:MM:SS" or "MM/DD/YYYY HH:MM:SS" — try both
+      const raw = r[iDate].trim();
+      const parts = raw.match(/(\d+)\/(\d+)\/(\d+)/);
+      if (parts) {
+        // Try DD/MM/YYYY first (Monday.com default)
+        const d1 = new Date(`${parts[3]}-${parts[2].padStart(2,'0')}-${parts[1].padStart(2,'0')}`);
+        const d2 = new Date(`${parts[3]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`);
+        // Use whichever produces a valid date; prefer d1 (DD/MM/YYYY)
+        ts = (!isNaN(d1) ? d1 : d2).getTime();
+      }
+    }
+    if (!(month in monthFirstSeen) || ts < monthFirstSeen[month]) {
+      monthFirstSeen[month] = ts;
+    }
+  }
+
+  // Sort months: if we have real timestamps use them; otherwise fall back to calendar index
+  const monthOrder = [...allMonths].sort((a, b) => {
+    const ta = monthFirstSeen[a] ?? Infinity;
+    const tb = monthFirstSeen[b] ?? Infinity;
+    if (ta !== tb) return ta - tb;
+    // same timestamp or both missing — fall back to calendar position
+    return MONTH_KNOWN.indexOf(a) - MONTH_KNOWN.indexOf(b);
+  });
 
   // Build items array
   const items = Object.entries(itemMap).map(([name, d]) => ({
