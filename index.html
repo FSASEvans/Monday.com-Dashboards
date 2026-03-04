@@ -131,8 +131,11 @@ main{padding:24px 32px;display:grid;gap:20px;max-width:1600px;}
 
 /* BOTTLENECKS */
 .bottleneck-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-.bn-tag{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border2);border-radius:6px;padding:7px 13px;box-shadow:var(--shadow-sm);border-left:3px solid var(--red);transition:box-shadow 0.12s;}
-.bn-tag:hover{box-shadow:0 3px 12px rgba(0,0,0,0.1);}
+.bn-tag{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border2);border-radius:6px;padding:7px 13px;box-shadow:var(--shadow-sm);border-left:3px solid var(--red);transition:box-shadow 0.15s,border-color 0.15s,transform 0.1s;cursor:pointer;user-select:none;}
+.bn-tag:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-1px);}
+.bn-tag:active{transform:translateY(0);}
+.bn-tag .bn-drill{font-size:10px;color:var(--muted2);margin-top:3px;}
+.bn-tag:hover .bn-drill{color:var(--red);}
 .bn-badge{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.05em;}
 .bn-name{font-size:12px;font-weight:600;color:var(--text);}
 .bn-val{font-size:12px;font-weight:700;color:var(--text2);}
@@ -247,6 +250,25 @@ td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;f
 .rh-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2);}
 .rh-row:last-child{border-bottom:none;}
 .rh-from{font-weight:600;}.rh-arrow{color:var(--muted);}.rh-rework{color:var(--amber);font-size:10px;font-weight:600;margin-left:auto;}
+
+/* BOTTLENECK PANEL ITEMS */
+.bni-row{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;border-radius:4px;padding-left:4px;padding-right:4px;}
+.bni-row:hover{background:var(--bg);}
+.bni-row:last-child{border-bottom:none;}
+.bni-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.bni-name{font-size:12px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bni-time{font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:800;white-space:nowrap;}
+.bni-meta{display:flex;align-items:center;gap:6px;margin-top:2px;}
+.bni-track{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border);}
+.bni-fill{height:100%;border-radius:3px;}
+.bni-pct{font-size:10px;color:var(--muted);min-width:32px;text-align:right;}
+.bn-panel-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.bn-stat-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
+.bn-stat-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;}
+.bn-stat-val{font-family:'Inter Tight',sans-serif;font-size:16px;font-weight:800;}
+.bn-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;cursor:pointer;margin-bottom:14px;transition:all 0.12s;}
+.bn-back:hover{color:var(--red);border-color:var(--red-mid);}
+.bn-rework-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:3px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -932,18 +954,81 @@ function renderBottlenecks() {
     const sMins = items.reduce((sum,it)=>sum+(it.statuses[s]||0)*60,0);
     const share = pct(sMins,ftMins);
     const labels = ['#1 Bottleneck','#2 Bottleneck','#3 Bottleneck','#4 Bottleneck'];
-    return `<div class="bn-tag" style="border-left-color:${statusColor(s)}">
+    const col = statusColor(s);
+    return `<div class="bn-tag" style="border-left-color:${col}" onclick="showBottleneckPanel('${s.replace(/'/g,"\\'")}')">
       <div>
-        <div class="bn-badge" style="color:${statusColor(s)}">${labels[i]}</div>
+        <div class="bn-badge" style="color:${col}">${labels[i]}</div>
         <div class="bn-name">${s}</div>
         <div class="bn-val">${fmt(a[s].avg_hours)} avg</div>
       </div>
       <div style="margin-left:8px;text-align:right">
         <div class="bn-share">${share} of time</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${a[s].n} items</div>
+        <div class="bn-drill">View items →</div>
       </div>
     </div>`;
   }).join('');
+}
+
+// ── BOTTLENECK PANEL ──────────────────────────────────────────────────────────
+function showBottleneckPanel(status) {
+  const col = statusColor(status);
+  const items = filteredItems().filter(i => i.statuses[status] != null && i.statuses[status] > 0);
+  if (!items.length) return;
+
+  const ranked = [...items].sort((a,b) => (b.statuses[status]||0) - (a.statuses[status]||0));
+  const maxH = ranked[0].statuses[status];
+  const totalH = ranked.reduce((s,i) => s+(i.statuses[status]||0), 0);
+  const avgH = totalH / ranked.length;
+  const reworkCount = ranked.filter(i => i.rework).length;
+
+  const rows = ranked.map(item => {
+    const ri = DATA.items.indexOf(item);
+    const h = item.statuses[status];
+    const gc = GC[item.group]||{bg:'#f3f4f6',text:'#374151',border:'#d1d5db'};
+    const gShort = item.group==='Creative Queue (Up Next)'?'CQ (Up Next)':item.group==='Creative Production'?'Prod':'Sandbox';
+    const pctOfMax = (h/maxH*100).toFixed(1);
+    const pctOfItem = pct(h*60, Object.values(item.statuses).reduce((a,b)=>a+b,0)*60);
+    return `<div class="bni-row" onclick="showPanel(${ri}, true)">
+      <div class="bni-header">
+        <div class="bni-name">${item.rework ? '<span class="bn-rework-dot"></span>' : ''}${item.name}</div>
+        <div class="bni-time" style="color:${col}">${fmt(h)}</div>
+      </div>
+      <div class="bni-meta">
+        <span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border};font-size:10px;padding:1px 5px">${gShort}</span>
+        <span class="mtag" style="font-size:10px">${item.month}</span>
+        <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${pctOfMax}%;background:${col}"></div></div>
+        <span class="bni-pct">${pctOfItem} of item</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const html = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+      <div class="pname" style="margin:0;padding:0">${status}</div>
+    </div>
+    <div class="bn-panel-summary">
+      <div class="bn-stat-box">
+        <div class="bn-stat-lbl">Items in Stage</div>
+        <div class="bn-stat-val" style="color:${col}">${ranked.length}</div>
+      </div>
+      <div class="bn-stat-box">
+        <div class="bn-stat-lbl">Avg Time Here</div>
+        <div class="bn-stat-val" style="color:${col}">${fmt(avgH)}</div>
+      </div>
+      <div class="bn-stat-box">
+        <div class="bn-stat-lbl">With Rework</div>
+        <div class="bn-stat-val" style="color:var(--amber)">${reworkCount > 0 ? reworkCount : '—'}</div>
+      </div>
+    </div>
+    <div class="psec">Items Ranked by Time in "${status}"</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
+      Click any row for its full status breakdown${reworkCount > 0 ? ' &nbsp;·&nbsp; <span style="color:var(--amber)">● rework detected</span>' : ''}
+    </div>
+    <div>${rows}</div>`;
+
+  _setPanelContent(html, false);
 }
 
 // ── STATUS BARS ───────────────────────────────────────────────────────────────
@@ -1123,7 +1208,29 @@ function renderItems() {
 }
 
 // ── DETAIL PANEL ──────────────────────────────────────────────────────────────
-function showPanel(i) {
+// Simple history stack so drilling item→bottleneck list has a "← Back" button
+let _panelStack = []; // each entry is an HTML string of previous panel content
+
+function _setPanelContent(html, pushCurrent) {
+  const pc = document.getElementById('panel-content');
+  if (pushCurrent && pc.innerHTML.trim()) _panelStack.push(pc.innerHTML);
+  pc.innerHTML = html;
+  pc.scrollTop = 0;
+  document.getElementById('panel').classList.add('open');
+}
+
+function _panelBackBtn(label) {
+  return `<button class="bn-back" onclick="panelBack()">← ${label}</button>`;
+}
+
+function panelBack() {
+  if (!_panelStack.length) return;
+  const pc = document.getElementById('panel-content');
+  pc.innerHTML = _panelStack.pop();
+  pc.scrollTop = 0;
+}
+
+function showPanel(i, fromBottleneck) {
   const item = DATA.items[i];
   const ss=Object.entries(item.statuses).sort((a,b)=>b[1]-a[1]);
   const mx=Math.max(...ss.map(s=>s[1]));
@@ -1140,7 +1247,9 @@ function showPanel(i) {
         }).join('');
       })()}
     </div>` : '';
-  document.getElementById('panel-content').innerHTML=`
+  const backBtn = fromBottleneck ? _panelBackBtn('Back to items') : '';
+  const html = `
+    ${backBtn}
     <div class="pname">${item.name}</div>
     <div class="pmeta"><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${item.group}</span><span>·</span><span>${item.month}</span></div>
     ${item.rework?'<div class="prework-flag">↺ Rework Detected — this item re-entered one or more statuses</div>':''}
@@ -1148,9 +1257,13 @@ function showPanel(i) {
     <div class="pbars">${ss.map(([s,h])=>`<div class="pbrow"><div class="pbname">${s}</div><div class="btrack"><div class="bfill" style="width:${(h/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div><div class="pbval" style="color:${statusColor(s)}">${fmt(h)}</div></div>`).join('')}</div>
     <div class="ptotal"><span>Total time tracked</span><strong>${fmt(item.total_hours)}</strong></div>
     ${transHtml}`;
-  document.getElementById('panel').classList.add('open');
+  _setPanelContent(html, !!fromBottleneck);
 }
-function closePanel(){document.getElementById('panel').classList.remove('open');}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  _panelStack = [];
+}
 
 
 // ── RENDER ALL ────────────────────────────────────────────────────────────────
