@@ -1,1685 +1,2425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Campaign Status Dashboard — FullSpeed Automotive</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FullSpeed Automotive — CMO Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --red:#C8102E; --red-light:#f9e6e9; --red-mid:#f0b3bc;
-  --bg:#f4f5f7; --white:#ffffff; --border:#e3e6eb; --border2:#d0d4db;
-  --text:#1a1d23; --text2:#3d4350; --muted:#7a8194; --muted2:#b0b7c3;
-  --blue:#1d6fb8; --blue-lt:#e8f1fb; --green:#1a7a52; --green-lt:#e6f4ed;
-  --amber:#b45309; --amber-lt:#fef3e2; --purple:#5b4fcf; --purple-lt:#eeedfb;
-  --shadow-sm:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
-  --shadow-lg:0 8px 30px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;min-height:100vh;}
+  /* ── FSA Brand System ─────────────────────────────────────────────────────
+     Primary:   #C41230  (FSA Red)
+     Secondary: #1A1A1A  (Charcoal / near-black)
+     Surface:   #FFFFFF  (White)
+     Surface2:  #F5F5F5  (Off-white / light gray)
+     Border:    #E0E0E0
+     Muted:     #767676
+     Status:    #1A7A3C green | #B45309 amber | #C41230 red | #767676 gray
+  ──────────────────────────────────────────────────────────────────────── */
+  :root {
+    --fsa-red:    #C41230;
+    --fsa-red-dk: #9B0E26;
+    --fsa-red-lt: #FCE8EC;
+    --charcoal:   #1A1A1A;
+    --bg:         #F0F2F5;
+    --surface:    #FFFFFF;
+    --surface2:   #F5F5F7;
+    --border:     #E0E0E0;
+    --border-dk:  #C8C8C8;
+    --text:       #1A1A1A;
+    --text-sec:   #444444;
+    --muted:      #767676;
+    --green:      #1A7A3C;
+    --green-bg:   #EAF6EE;
+    --amber:      #B45309;
+    --amber-bg:   #FEF3E2;
+    --red:        #C41230;
+    --red-bg:     #FCE8EC;
+    --gray-bg:    #F0F0F0;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body:    'Barlow', sans-serif;
+    --font-semi:    'Barlow Semi Condensed', sans-serif;
+  }
 
-/* HEADER */
-header{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:stretch;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:50;}
-.header-accent{width:4px;background:var(--red);flex-shrink:0;}
-.header-body{display:flex;justify-content:space-between;align-items:center;flex:1;padding:13px 0 13px 18px;gap:16px;flex-wrap:wrap;}
-.header-left h1{font-family:'Inter Tight',sans-serif;font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.2px;}
-.header-left h1 span{color:var(--red);}
-.header-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.header-badge{background:var(--red-light);color:var(--red);font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;border:1px solid var(--red-mid);white-space:nowrap;}
-.hbtn{display:none;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text2);font-family:'Inter',sans-serif;transition:all 0.12s;}
-.hbtn:hover{border-color:var(--red);color:var(--red);}
-.hbtn.green{color:var(--green);background:var(--green-lt);border-color:#a7d8bf;}
-.hbtn.green:hover{filter:brightness(0.95);}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* UPLOAD ZONE (header) */
-.upload-zone{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px dashed var(--border2);border-radius:6px;padding:6px 12px;cursor:pointer;transition:all 0.15s;}
-.upload-zone:hover{border-color:var(--red);background:var(--red-light);}
-.upload-zone.has-file{border-color:var(--green);background:var(--green-lt);border-style:solid;}
-.upload-zone input[type=file]{display:none;}
-.upload-text{font-size:11px;font-weight:500;color:var(--text2);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;}
-.upload-zone.has-file .upload-text{color:var(--green);}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
 
-/* PARSE STATUS */
-#parse-status{font-size:11px;padding:4px 10px;border-radius:4px;display:none;}
-#parse-status.ok{background:var(--green-lt);color:var(--green);display:block;}
-#parse-status.err{background:var(--red-light);color:var(--red);display:block;}
+  /* ── Header ── */
+  .header {
+    background: var(--charcoal);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.22);
+  }
+  .header-accent {
+    width: 4px;
+    background: var(--fsa-red);
+    flex-shrink: 0;
+  }
+  .header-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+    padding: 13px 28px 13px 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-left h1 {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+  }
+  .header-left h1 span { color: var(--fsa-red); }
+  .header-subtitle {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .last-updated {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-family: var(--font-body);
+    font-weight: 400;
+  }
+  .data-period-badge {
+    background: rgba(196,18,48,0.25);
+    border: 1px solid rgba(196,18,48,0.45);
+    color: #ff8fa3;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-family: var(--font-semi);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  /* old classes no longer used — kept harmless */
+  .header-brand, .header-logo, .header-divider,
+  .header-wordmark, .header-sep, .header-title { display: none; }
 
-/* FILTER BAR */
-.filter-bar{background:var(--white);border-bottom:1px solid var(--border);padding:9px 32px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.flabel{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.03em;text-transform:uppercase;margin-right:2px;white-space:nowrap;}
-.pill-group{display:flex;gap:4px;flex-wrap:wrap;}
-.pill{font-size:12px;font-weight:500;padding:4px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text2);transition:all 0.12s;}
-.pill:hover{border-color:var(--red);color:var(--red);background:var(--red-light);}
-.pill.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:600;}
-.pill.active-b{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600;}
-.pill.active-p{background:var(--purple);color:#fff;border-color:var(--purple);font-weight:600;}
-.fdiv{width:1px;height:20px;background:var(--border2);margin:0 6px;}
+  /* ── Nav Tabs ── */
+  .nav-tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 13px 18px;
+    font-family: var(--font-semi);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--charcoal); background: var(--surface2); }
+  .tab-btn.active {
+    color: var(--fsa-red);
+    border-bottom-color: var(--fsa-red);
+    font-weight: 600;
+  }
+  .tab-btn .tab-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background: var(--muted);
+    vertical-align: middle;
+    margin-bottom: 1px;
+  }
+  .tab-btn.status-green .tab-dot { background: var(--green); }
+  .tab-btn.status-yellow .tab-dot { background: var(--amber); }
+  .tab-btn.status-red .tab-dot { background: var(--fsa-red); }
+  .tab-btn.status-gray .tab-dot { background: var(--muted); }
 
-/* LANDING */
-#landing{padding:40px 32px;max-width:1200px;margin:0 auto;}
-.landing-title{font-family:'Inter Tight',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;}
-.landing-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+  /* ── Page Layout ── */
+  .page { display: none; padding: 28px 32px; max-width: 1400px; }
+  .page.active { display: block; }
 
-/* LIBRARY GRID */
-.lib-section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.lib-section-label::after{content:'';flex:1;height:1px;background:var(--border);}
-.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;}
+  /* ── Section Labels ── */
+  .section-label {
+    font-family: var(--font-semi);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
 
-/* DATASET CARD */
-.dataset-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s,transform 0.1s;position:relative;display:flex;flex-direction:column;gap:10px;}
-.dataset-card:hover{border-color:var(--red);box-shadow:0 4px 16px rgba(200,16,46,0.1);transform:translateY(-1px);}
-.dataset-card:active{transform:translateY(0);}
-.dc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.dc-icon{width:38px;height:38px;border-radius:8px;background:var(--red-light);border:1px solid var(--red-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.dc-menu-btn{background:none;border:1px solid var(--border2);border-radius:5px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted);opacity:0;transition:opacity 0.15s,border-color 0.12s;}
-.dataset-card:hover .dc-menu-btn{opacity:1;}
-.dc-menu-btn:hover{border-color:var(--red);color:var(--red);}
-.dc-name{font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.3;}
-.dc-board{font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;}
-.dc-meta{display:flex;gap:6px;flex-wrap:wrap;}
-.dc-chip{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;background:var(--bg);border:1px solid var(--border2);color:var(--text2);white-space:nowrap;}
-.dc-chip.red{background:var(--red-light);border-color:var(--red-mid);color:var(--red);}
-.dc-chip.blue{background:var(--blue-lt);border-color:#93c5fd;color:var(--blue);}
-.dc-added{font-size:10px;color:var(--muted2);margin-top:auto;}
+  /* ── KPI Grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.15s;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    transform: translateY(-1px);
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  /* Tinted card backgrounds by status */
+  .kpi-card.green  { background: #EDF7F1; border-color: #A8D8BC; }
+  .kpi-card.yellow { background: #FEF8ED; border-color: #F0C878; }
+  .kpi-card.red    { background: #FDF0F2; border-color: #E8A0AC; }
+  .kpi-card.gray   { background: #F5F5F7; border-color: #D0D0D0; }
+  .kpi-card.green::before  { background: var(--green); }
+  .kpi-card.yellow::before { background: var(--amber); }
+  .kpi-card.red::before    { background: var(--fsa-red); }
+  .kpi-card.gray::before   { background: var(--muted); }
+  .kpi-card.green:hover  { box-shadow: 0 4px 14px rgba(26,122,60,0.14); }
+  .kpi-card.yellow:hover { box-shadow: 0 4px 14px rgba(180,83,9,0.12); }
+  .kpi-card.red:hover    { box-shadow: 0 4px 14px rgba(196,18,48,0.14); }
 
-/* CONTEXT MENU */
-.ctx-menu{position:absolute;top:52px;right:16px;background:var(--white);border:1px solid var(--border2);border-radius:8px;box-shadow:var(--shadow-lg);z-index:150;min-width:160px;padding:5px 0;animation:ddIn 0.12s ease;}
-.ctx-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:background 0.08s;}
-.ctx-item:hover{background:var(--bg);}
-.ctx-item.danger:hover{background:#fef2f2;color:#dc2626;}
-@keyframes ddIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  /* ── Upload Panel ── */
+  .upload-panel {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s ease;
+    box-shadow: inset 0 -1px 0 var(--border);
+  }
+  .upload-panel.open { max-height: 440px; }
+  .upload-panel-inner { padding: 20px 32px 24px; }
+  .upload-panel-title {
+    font-family: var(--font-semi);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .upload-panel-title span {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .upload-slot {
+    border: 1.5px dashed var(--border-dk);
+    border-radius: 5px;
+    padding: 11px 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--surface2);
+    position: relative;
+  }
+  .upload-slot:hover  { border-color: var(--fsa-red); background: var(--red-bg); }
+  .upload-slot.loaded { border-color: var(--green); border-style: solid; background: var(--green-bg); }
+  .upload-slot.error  { border-color: var(--fsa-red); border-style: solid; background: var(--red-bg); }
+  .upload-slot input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-slot-name {
+    font-family: var(--font-semi);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 2px;
+  }
+  .upload-slot-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+  .upload-slot-status {
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 5px;
+    font-family: var(--font-semi);
+    color: var(--muted);
+  }
+  .upload-slot.loaded .upload-slot-status { color: var(--green); }
+  .upload-slot.error  .upload-slot-status { color: var(--fsa-red); }
+  .upload-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .btn-refresh {
+    background: var(--fsa-red);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 22px;
+    font-family: var(--font-semi);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-refresh:hover    { background: var(--fsa-red-dk); }
+  .btn-refresh:disabled { background: var(--muted); cursor: not-allowed; }
+  .upload-note { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .upload-toggle {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 4px;
+    color: rgba(255,255,255,0.65);
+    font-family: var(--font-semi);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .upload-toggle:hover  { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); color: #fff; }
+  .upload-toggle.active { background: var(--fsa-red); border-color: var(--fsa-red); color: #fff; }
 
-/* ADD CARD */
-.add-card{background:var(--white);border:1.5px dashed var(--border2);border-radius:10px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;min-height:168px;transition:border-color 0.15s,background 0.15s;}
-.add-card:hover{border-color:var(--red);background:var(--red-light);}
-.add-card-icon{font-size:28px;}
-.add-card-label{font-size:13px;font-weight:600;color:var(--muted);text-align:center;}
-.add-card:hover .add-card-label{color:var(--red);}
+  .kpi-channel {
+    font-family: var(--font-semi);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .kpi-label {
+    font-size: 12px;
+    color: var(--text-sec);
+    margin-bottom: 10px;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .kpi-value {
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .kpi-card.green .kpi-value { color: var(--green); }
+  .kpi-card.yellow .kpi-value { color: var(--amber); }
+  .kpi-card.red .kpi-value { color: var(--fsa-red); }
+  .kpi-card.gray .kpi-value { color: var(--muted); }
 
-/* SAVE MODAL */
-#save-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:300;align-items:center;justify-content:center;}
-#save-modal-overlay.open{display:flex;}
-#save-modal{background:var(--white);border-radius:12px;padding:28px;width:420px;box-shadow:var(--shadow-lg);animation:modalIn 0.18s ease;}
-@keyframes modalIn{from{transform:scale(0.96);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-title{font-family:'Inter Tight',sans-serif;font-size:16px;font-weight:700;margin-bottom:18px;}
-.modal-field{margin-bottom:14px;}
-.modal-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px;}
-.modal-input{width:100%;font-size:13px;font-family:'Inter',sans-serif;border:1.5px solid var(--border2);border-radius:6px;padding:8px 11px;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.12s;}
-.modal-input:focus{border-color:var(--red);background:#fff;}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-.modal-btn{font-size:13px;font-weight:600;padding:8px 18px;border-radius:6px;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all 0.12s;}
-.modal-btn.cancel{background:var(--bg);border:1px solid var(--border2);color:var(--text2);}
-.modal-btn.cancel:hover{border-color:var(--red);color:var(--red);}
-.modal-btn.save{background:var(--red);color:#fff;}
-.modal-btn.save:hover{filter:brightness(1.1);}
+  .kpi-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .kpi-target { font-weight: 400; }
+  .kpi-delta {
+    font-weight: 600;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .delta-pos { background: var(--green-bg); color: var(--green); }
+  .delta-neg { background: var(--red-bg);   color: var(--fsa-red); }
+  .delta-neu { background: var(--gray-bg);  color: var(--muted); }
 
-/* MAIN */
-main{padding:24px 32px;display:grid;gap:20px;max-width:1600px;}
-.sh{font-family:'Inter Tight',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.sh-dot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;}
-.sh::after{content:'';flex:1;height:1px;background:var(--border);}
+  .kpi-owner {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-weight: 400;
+  }
 
-/* KPIs */
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
-.kpi{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
-.kpi-color-bar{position:absolute;left:0;top:0;bottom:0;width:3px;}
-.kpi-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
-.kpi-val{font-family:'Inter Tight',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;}
-.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  /* ── Channel Detail Page ── */
+  .channel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+  }
+  .channel-title {
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--charcoal);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .channel-title-accent {
+    color: var(--fsa-red);
+  }
+  .channel-meta-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: var(--font-semi);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-vendor   { border-color: #C0D8F0; color: #1E5C9E; background: #EBF3FB; }
+  .badge-owner    { border-color: #C8C8C8; color: #444;    background: #F5F5F5; }
+  .badge-lead     { border-color: #A8D8BC; color: var(--green);  background: var(--green-bg); }
+  .badge-lag      { border-color: #F0C8B0; color: #8B3A0F; background: #FEF0E8; }
+  .badge-impact-high { border-color: rgba(196,18,48,0.3); color: var(--fsa-red); background: var(--red-bg); }
+  .badge-impact-med  { border-color: var(--border-dk); color: var(--muted); background: var(--gray-bg); }
+  .badge-impact-low  { border-color: var(--border);    color: var(--muted); background: transparent; }
+  .badge-hold        { border-color: var(--border-dk); color: var(--muted); background: var(--gray-bg); }
 
-/* KPI drill affordance */
-.kpi.kpi-click{cursor:pointer;transition:border-color 0.15s, box-shadow 0.15s, transform 0.08s;}
-.kpi.kpi-click:hover{border-color:var(--red);box-shadow:0 4px 16px rgba(0,0,0,0.10);transform:translateY(-1px);}
-.kpi.kpi-click:active{transform:translateY(0);}
-.kpi-drillhint{font-size:10px;color:var(--muted2);margin-top:6px;}
-.kpi.kpi-click:hover .kpi-drillhint{color:var(--red);}
+  /* ── 2-col / 3-col layouts ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 960px) {
+    .three-col { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .two-col, .three-col { grid-template-columns: 1fr; }
+  }
 
-/* BOTTLENECKS */
-.bottleneck-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-.bn-tag{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border2);border-radius:6px;padding:7px 13px;box-shadow:var(--shadow-sm);border-left:3px solid var(--red);transition:box-shadow 0.15s,border-color 0.15s,transform 0.1s;cursor:pointer;user-select:none;}
-.bn-tag:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1);transform:translateY(-1px);}
-.bn-tag:active{transform:translateY(0);}
-.bn-tag .bn-drill{font-size:10px;color:var(--muted2);margin-top:3px;}
-.bn-tag:hover .bn-drill{color:var(--red);}
-.bn-badge{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.05em;}
-.bn-name{font-size:12px;font-weight:600;color:var(--text);}
-.bn-val{font-size:12px;font-weight:700;color:var(--text2);}
-.bn-share{font-size:10px;color:var(--muted);background:var(--bg);border-radius:3px;padding:1px 5px;}
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card-title {
+    font-family: var(--font-semi);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
 
-/* REWORK BANNER */
-.rework-banner{display:flex;align-items:center;gap:12px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:4px;}
-.rw-icon{font-size:18px;}
-.rw-body{flex:1;}
-.rw-title{font-weight:700;font-size:13px;color:#92400e;margin-bottom:2px;}
-.rw-sub{font-size:11px;color:#b45309;}
-.rw-stat{font-family:'Inter Tight',sans-serif;font-size:28px;font-weight:800;color:#b45309;white-space:nowrap;}
+  /* ── Metric Rows ── */
+  .metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-name { font-size: 13px; color: var(--text); font-weight: 400; }
+  .metric-values {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    font-family: var(--font-semi);
+  }
+  .metric-current { color: var(--charcoal); font-weight: 600; }
+  .metric-target  { color: var(--muted); font-weight: 400; }
+  .metric-vs {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 1px 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
 
-/* CARDS */
-.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:20px;box-shadow:var(--shadow-sm);}
-.ctitle{font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
-.csub{font-size:11px;color:var(--muted);margin-bottom:14px;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.three-col{display:grid;grid-template-columns:5fr 3fr;gap:18px;}
+  /* ── Progress Bar ── */
+  .progress-wrap { margin: 8px 0 14px; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-family: var(--font-semi);
+  }
+  .progress-bar {
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+  .progress-fill.green  { background: var(--green); }
+  .progress-fill.yellow { background: var(--amber); }
+  .progress-fill.red    { background: var(--fsa-red); }
 
-/* STATUS BARS */
-.sbars{display:flex;flex-direction:column;gap:9px;}
-.srow{display:grid;grid-template-columns:152px 1fr 88px;align-items:center;gap:10px;}
-.sname{font-size:12px;font-weight:500;color:var(--text2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.btrack{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
-.bfill{height:100%;border-radius:4px;transition:width 0.5s cubic-bezier(.4,0,.2,1);}
-.sval{font-size:12px;font-weight:600;color:var(--text);text-align:right;line-height:1.3;}
-.sn{display:block;font-size:10px;color:var(--muted);font-weight:400;}
+  /* ── Action Items ── */
+  .action-list { list-style: none; }
+  .action-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-sec);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+  .action-list li:last-child { border-bottom: none; }
+  .action-bullet {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--fsa-red);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 
-/* SORT */
-.sort-control{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
-.sort-btn{font-size:11px;font-weight:500;color:var(--muted);background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;cursor:pointer;transition:all 0.12s;}
-.sort-btn:hover{border-color:var(--red);color:var(--red);}
-.sort-btn.active{background:var(--red-light);border-color:var(--red-mid);color:var(--red);font-weight:600;}
+  /* ── Data Status ── */
+  .data-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 7px;
+    font-weight: 400;
+  }
+  .data-status.ok   { background: var(--green-bg); border: 1px solid #A8D8BC; color: var(--green); }
+  .data-status.warn { background: var(--amber-bg); border: 1px solid #F0C878; color: var(--amber); }
+  .data-status.hold { background: var(--gray-bg);  border: 1px solid var(--border); color: var(--muted); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-/* TRANSITIONS */
-.tlist{display:flex;flex-direction:column;}
-.trow{padding:9px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:start;}
-.trow:last-child{border-bottom:none;}
-.tfrom{font-size:12px;font-weight:600;color:var(--text);padding-top:1px;}
-.ttos{display:flex;flex-direction:column;gap:4px;}
-.tto{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
-.tbar{height:4px;border-radius:2px;min-width:4px;opacity:0.8;}
-.tcnt{color:var(--muted);font-size:10px;min-width:24px;text-align:right;font-weight:500;}
+  /* ── Overview Table Rows ── */
+  .overview-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+    border-radius: 4px;
+  }
+  .overview-row:hover { background: var(--surface2); }
+  .overview-row:last-child { border-bottom: none; }
+  .ov-channel {
+    width: 140px;
+    font-family: var(--font-semi);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .ov-kpi {
+    flex: 1;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ov-value {
+    font-family: var(--font-semi);
+    font-size: 13px;
+    font-weight: 600;
+    width: 90px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .ov-target {
+    font-size: 11px;
+    color: var(--muted);
+    width: 110px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .ov-bar {
+    width: 90px;
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ov-fill { height: 100%; border-radius: 3px; }
+  .ov-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-/* TABLE CONTROLS */
-.table-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.table-sort-group{display:flex;gap:4px;}
-.tsort-btn{font-size:11px;font-weight:500;padding:3px 9px;border-radius:4px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--muted);transition:all 0.12s;}
-.tsort-btn:hover{border-color:var(--red);color:var(--red);}
-.tsort-btn.active{background:var(--red-light);border-color:var(--red-mid);color:var(--red);font-weight:600;}
-.dropdown-wrap{position:relative;}
-.dropdown-trigger{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--text2);background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:4px 10px;cursor:pointer;transition:all 0.12s;white-space:nowrap;user-select:none;}
-.dropdown-trigger:hover{border-color:var(--red);color:var(--red);}
-.dropdown-trigger.has-filter{background:var(--red-light);border-color:var(--red-mid);color:var(--red);font-weight:600;}
-.dt-arrow{font-size:9px;transition:transform 0.15s;}
-.dropdown-trigger.open .dt-arrow{transform:rotate(180deg);}
-.dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--white);border:1px solid var(--border2);border-radius:7px;box-shadow:var(--shadow-lg);z-index:100;min-width:220px;padding:6px 0;max-height:320px;overflow-y:auto;}
-.dropdown-menu.open{display:block;animation:ddIn 0.12s ease;}
-.dd-search{padding:6px 10px 4px;}
-.dd-search input{width:100%;font-size:11px;font-family:'Inter',sans-serif;border:1px solid var(--border2);border-radius:4px;padding:4px 8px;color:var(--text2);background:var(--bg);outline:none;}
-.dd-search input:focus{border-color:var(--red);}
-.dd-actions{display:flex;padding:4px 10px;border-bottom:1px solid var(--border);}
-.dd-action{font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;padding:2px 0;margin-right:10px;}
-.dd-action:hover{color:var(--red);}
-.dd-item{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;transition:background 0.08s;font-size:12px;color:var(--text2);}
-.dd-item:hover{background:var(--bg);}
-.dd-item input[type=checkbox]{accent-color:var(--red);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
-.dd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-family: var(--font-semi);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    background: var(--surface2);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
 
-/* TABLE */
-.tscroll{overflow-y:auto;max-height:380px;}
-.tscroll::-webkit-scrollbar{width:4px;}
-.tscroll::-webkit-scrollbar-track{background:var(--bg);}
-.tscroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-table{width:100%;border-collapse:collapse;}
-thead th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;padding:0 10px 10px;text-align:left;position:sticky;top:0;background:var(--white);z-index:2;border-bottom:1px solid var(--border2);cursor:pointer;user-select:none;}
-thead th:hover{color:var(--red);}
-thead th.r{text-align:right;}
-thead th.col-active{color:var(--red);}
-tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
-tbody tr:hover{background:#fafbfc;}
-tbody tr.rework-row td.iname::after{content:' ↺';color:var(--amber);font-size:10px;}
-td{padding:9px 10px;font-size:12px;color:var(--text2);vertical-align:middle;}
-td.iname{font-size:12px;font-weight:500;color:var(--text);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-td.itotal{text-align:right;font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;}
-.gtag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;white-space:nowrap;}
-.mtag{font-size:11px;color:var(--muted);}
-.sparkrow{display:flex;gap:2px;align-items:flex-end;}
-.spark{border-radius:1px;min-width:4px;opacity:0.85;}
-.chart-wrap canvas{max-height:220px;}
+  /* ── Notes box ── */
+  .notes-box {
+    background: #FFFBF0;
+    border: 1px solid #F0D890;
+    border-left: 3px solid var(--amber);
+    border-radius: 0 5px 5px 0;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text-sec);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .notes-box strong { color: var(--charcoal); }
 
-/* PANEL OVERLAY (click-out close) */
-#panel-overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.15);
-  backdrop-filter: blur(1px);
-  z-index:190; /* below panel (200), above main content */
-}
-#panel-overlay.open{display:block;}
+  /* ── HOLD state ── */
+  .hold-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 40px;
+  }
+  .hold-icon { font-size: 40px; opacity: 0.2; }
+  .hold-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .hold-desc {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.6;
+  }
 
-/* DETAIL PANEL */
-#panel{display:none;position:fixed;top:0;right:0;bottom:0;width:400px;background:var(--white);border-left:1px solid var(--border2);z-index:200;padding:24px 22px;overflow-y:auto;box-shadow:var(--shadow-lg);}
-#panel.open{display:block;animation:si 0.18s ease;}
-@keyframes si{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
-.pclose{position:absolute;top:16px;right:16px;background:var(--bg);border:1px solid var(--border2);color:var(--muted);width:26px;height:26px;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
-.pclose:hover{background:var(--red-light);color:var(--red);border-color:var(--red-mid);}
-.pname{font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:700;line-height:1.4;padding-right:36px;margin-bottom:6px;}
-.pmeta{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;}
-.prework-flag{display:inline-flex;align-items:center;gap:5px;background:#fffbeb;border:1px solid #fcd34d;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:600;color:#92400e;margin-bottom:14px;}
-.psec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
-.psec::after{content:'';flex:1;height:1px;background:var(--border);}
-.pbars{display:flex;flex-direction:column;gap:8px;}
-.pbrow{display:grid;grid-template-columns:130px 1fr 78px;align-items:center;gap:8px;}
-.pbname{font-size:11px;font-weight:500;color:var(--text2);text-align:right;}
-.pbval{font-size:12px;font-weight:700;text-align:right;}
-.ptotal{margin-top:16px;padding:12px 14px;background:var(--red-light);border-radius:6px;border-left:3px solid var(--red);font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center;}
-.ptotal strong{font-family:'Inter Tight',sans-serif;font-size:17px;font-weight:800;color:var(--red);}
-.no-r{font-size:12px;color:var(--muted);text-align:center;padding:28px;}
-.rework-history{margin-top:10px;}
-.rh-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2);}
-.rh-row:last-child{border-bottom:none;}
-.rh-from{font-weight:600;}.rh-arrow{color:var(--muted);}.rh-rework{color:var(--amber);font-size:10px;font-weight:600;margin-left:auto;}
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .header { padding: 0 16px; }
+    .nav-tabs { padding: 0 16px; }
+    .page { padding: 20px 16px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .ov-target, .ov-bar { display: none; }
+  }
 
-/* BOTTLENECK PANEL ITEMS */
-.bni-row{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;border-radius:4px;padding-left:4px;padding-right:4px;}
-.bni-row:hover{background:var(--bg);}
-.bni-row:last-child{border-bottom:none;}
-.bni-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.bni-name{font-size:12px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.bni-time{font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:800;white-space:nowrap;}
-.bni-meta{display:flex;align-items:center;gap:6px;margin-top:2px;}
-.bni-track{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border);}
-.bni-fill{height:100%;border-radius:3px;}
-.bni-pct{font-size:10px;color:var(--muted);min-width:32px;text-align:right;}
-.bn-panel-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
-.bn-stat-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
-.bn-stat-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;}
-.bn-stat-val{font-family:'Inter Tight',sans-serif;font-size:16px;font-weight:800;}
-.bn-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;cursor:pointer;margin-bottom:14px;transition:all 0.12s;}
-.bn-back:hover{color:var(--red);border-color:var(--red-mid);}
-.bn-rework-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:3px;vertical-align:middle;}
+  /* ── Animations ── */
+  .page.active { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Page title block ── */
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    line-height: 1;
+  }
+  .page-title span { color: var(--fsa-red); }
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* ── Red accent number (large KPI display) ── */
+  .kpi-big-red  { font-family: var(--font-display); font-size: 52px; font-weight: 700; color: var(--fsa-red); letter-spacing: 1px; line-height: 1; }
+  .kpi-big-grn  { font-family: var(--font-display); font-size: 52px; font-weight: 700; color: var(--green);   letter-spacing: 1px; line-height: 1; }
+  .kpi-big-amb  { font-family: var(--font-display); font-size: 52px; font-weight: 700; color: var(--amber);   letter-spacing: 1px; line-height: 1; }
+  .kpi-big-mute { font-family: var(--font-display); font-size: 52px; font-weight: 700; color: var(--muted);   letter-spacing: 1px; line-height: 1; }
+  .kpi-big-dk   { font-family: var(--font-display); font-size: 52px; font-weight: 700; color: var(--charcoal);letter-spacing: 1px; line-height: 1; }
+
+  /* ── Upload hint ── */
+  .upload-hint {
+    background: #EBF3FB;
+    border: 1px dashed #90C0E8;
+    border-radius: 5px;
+    padding: 11px 15px;
+    font-size: 12px;
+    color: #1E5C9E;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  /* ── AI Analysis Panel ── */
+  .ai-analysis {
+    background: var(--charcoal);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-analysis::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--fsa-red);
+  }
+  .ai-analysis-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ai-badge {
+    background: var(--fsa-red);
+    color: #fff;
+    font-family: var(--font-semi);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .ai-analysis-title {
+    font-family: var(--font-semi);
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    font-style: italic;
+  }
+  .ai-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: var(--fsa-red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ai-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 900px) { .ai-body { grid-template-columns: 1fr; } }
+  .ai-section-label {
+    font-family: var(--font-semi);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .ai-section-label.performance { color: rgba(255,255,255,0.4); }
+  .ai-section-label.causes      { color: #F0C878; }
+  .ai-section-label.actions     { color: #A8D8BC; }
+  .ai-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.82);
+    line-height: 1.65;
+  }
+  .ai-text p { margin-bottom: 6px; }
+  .ai-text p:last-child { margin-bottom: 0; }
+  .ai-error {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
 
-<header>
+<!-- HEADER -->
+<header class="header">
   <div class="header-accent"></div>
   <div class="header-body">
     <div class="header-left">
-      <h1>FullSpeed <span>Automotive</span> · Campaign Status Dashboard</h1>
-      <div class="header-sub" id="header-sub">Marketing Leadership · Status Time Analysis</div>
+      <h1>FullSpeed <span>Automotive</span> · CMO Marketing Dashboard</h1>
+      <div class="header-subtitle">Marketing Intelligence · FullSpeed Automotive Leadership</div>
     </div>
     <div class="header-right">
-      <div id="parse-status"></div>
-      <button id="back-btn" class="hbtn" onclick="goToLanding()">← Datasets</button>
-      <button id="save-lib-btn" class="hbtn green" onclick="openSaveModal()">💾 Save to Library</button>
-      <label class="upload-zone" id="upload-zone" title="Switch dataset — upload a new CSV">
-        <input type="file" accept=".csv" id="file-input" onchange="handleFileUpload(this)">
-        <span class="upload-icon">📂</span>
-        <span class="upload-text" id="upload-text">Load CSV Data</span>
-      </label>
-      <div class="header-badge">Marketing Leadership</div>
+      <span class="last-updated" id="lastUpdated">Updated: —</span>
+      <span class="data-period-badge" id="dataPeriod">2026 Data</span>
+      <button class="upload-toggle" id="uploadToggleBtn" onclick="toggleUploadPanel()">
+        ↑ Refresh Data
+      </button>
     </div>
   </div>
 </header>
 
-<div class="filter-bar" id="filter-bar" style="display:none">
-  <span class="flabel">Group</span>
-  <div class="pill-group" id="group-pills"></div>
-  <div class="fdiv"></div>
-  <span class="flabel">Month</span>
-  <div class="pill-group" id="month-pills"></div>
-</div>
-
-<!-- ── LANDING / DOCUMENT LIBRARY ─────────────────────────────────────────── -->
-<div id="landing" style="padding:40px 32px;max-width:1200px;margin:0 auto;">
-  <div class="landing-title">Select a Dataset</div>
-  <div class="landing-sub">Choose a saved Activity Log or upload a new one from Monday.com</div>
-
-  <div id="lib-has-items" style="display:none">
-    <div class="lib-section-label">Saved Datasets</div>
-    <div class="library-grid" id="library-grid"></div>
-    <div class="lib-section-label" style="margin-bottom:16px">Upload New File</div>
-  </div>
-
-  <div id="lib-no-items" style="display:none;margin-bottom:20px;font-size:13px;color:var(--muted);">
-    No saved datasets yet — upload your first Monday.com Activity Log below.
-  </div>
-
-  <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px 24px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-sm);">
-    <div style="font-size:32px;flex-shrink:0;">📂</div>
-    <div style="flex:1;">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">Upload a Monday.com Activity Log CSV</div>
-      <div style="font-size:11px;color:var(--muted);">In Monday.com: Open your board → Activity Log → Export → CSV. After loading you can save it to the library for quick access later.</div>
+<!-- ════════════════════════════════════════════════
+     UPLOAD PANEL
+════════════════════════════════════════════════ -->
+<div class="upload-panel" id="uploadPanel">
+  <div class="upload-panel-inner">
+    <div class="upload-panel-title">
+      Refresh Dashboard Data
+      <span>Drop in new exports — dashboard recalculates instantly. Partial uploads OK.</span>
     </div>
-    <label style="display:inline-flex;align-items:center;gap:6px;background:var(--red);color:#fff;font-size:12px;font-weight:600;padding:9px 18px;border-radius:6px;cursor:pointer;white-space:nowrap;" for="landing-file-input">Choose CSV File</label>
-    <input type="file" accept=".csv" id="landing-file-input" style="display:none" onchange="handleFileUpload(this)">
-  </div>
-</div>
-
-<!-- ── SAVE TO LIBRARY MODAL ───────────────────────────────────────────────── -->
-<div id="save-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:300;align-items:center;justify-content:center;" onclick="handleOverlayClick(event)">
-  <div id="save-modal" style="background:var(--white);border-radius:12px;padding:28px;width:420px;box-shadow:var(--shadow-lg);animation:modalIn 0.18s ease;">
-    <div class="modal-title">💾 Save to Dataset Library</div>
-    <div class="modal-field">
-      <div class="modal-label">Dataset Name</div>
-      <input class="modal-input" id="modal-name" type="text" placeholder="e.g. Grease Monkey Refresh — Q1 2026">
+    <div class="upload-grid">
+      <div class="upload-slot" id="slot-google-ads">
+        <input type="file" accept=".csv" onchange="handleFile('google-ads', this)"/>
+        <div class="upload-slot-name">Google Ads</div>
+        <div class="upload-slot-desc">CSV export · Campaign performance by day</div>
+        <div class="upload-slot-status">↑ Click to upload</div>
+      </div>
+      <div class="upload-slot" id="slot-cinch-sms">
+        <input type="file" accept=".xlsx,.xls" onchange="handleFile('cinch-sms', this)"/>
+        <div class="upload-slot-name">SMS (Cinch)</div>
+        <div class="upload-slot-desc">Excel · Monthly send & delivery data</div>
+        <div class="upload-slot-status">↑ Click to upload</div>
+      </div>
+      <div class="upload-slot" id="slot-cinch-email">
+        <input type="file" accept=".xlsx,.xls" onchange="handleFile('cinch-email', this)"/>
+        <div class="upload-slot-name">Email (Cinch)</div>
+        <div class="upload-slot-desc">Excel · Template-level send & click data</div>
+        <div class="upload-slot-status">↑ Click to upload</div>
+      </div>
+      <div class="upload-slot" id="slot-dripdrop">
+        <input type="file" accept=".xlsx,.xls" onchange="handleFile('dripdrop', this)"/>
+        <div class="upload-slot-name">Direct Mail (DripDrop)</div>
+        <div class="upload-slot-desc">Excel · Location response rate data</div>
+        <div class="upload-slot-status">↑ Click to upload</div>
+      </div>
+      <div class="upload-slot" id="slot-web-ga4">
+        <input type="file" accept=".csv" onchange="handleFile('web-ga4', this)"/>
+        <div class="upload-slot-name">Web (GA4)</div>
+        <div class="upload-slot-desc">CSV · Sessions by channel group</div>
+        <div class="upload-slot-status">↑ Click to upload</div>
+      </div>
     </div>
-    <div class="modal-field">
-      <div class="modal-label">Board / Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
-      <input class="modal-input" id="modal-board" type="text" placeholder="e.g. CC1 Change to the Monkey Refresh">
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn cancel" onclick="closeSaveModal()">Cancel</button>
-      <button class="modal-btn save" onclick="confirmSave()">Save Dataset</button>
+    <div class="upload-actions">
+      <button class="btn-refresh" id="refreshBtn" onclick="applyUploads()" disabled>Apply & Refresh Dashboard</button>
+      <div class="upload-note" id="uploadNote">Upload at least one file to refresh. Channels without new files keep their current values.</div>
     </div>
   </div>
 </div>
 
-<!-- ── DASHBOARD ───────────────────────────────────────────────────────────── -->
-<main id="main-content" style="display:none">
-  <div class="rework-banner">
-    <div class="rw-icon">🔄</div>
-    <div class="rw-body">
-      <div class="rw-title">Rework Detected</div>
-      <div class="rw-sub">Items that re-entered a status they previously held, indicating revision loops</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px" id="rw-items"></div>
+<!-- NAV TABS -->
+<nav class="nav-tabs" id="navTabs">
+  <button class="tab-btn active" onclick="showPage('overview')" id="tab-overview">
+    <span class="tab-dot" style="background:var(--fsa-red)"></span>All Channels
+  </button>
+  <button class="tab-btn status-green" onclick="showPage('paid-search')" id="tab-paid-search">
+    <span class="tab-dot"></span>Paid Search
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('web')" id="tab-web">
+    <span class="tab-dot"></span>Web
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('sms')" id="tab-sms">
+    <span class="tab-dot"></span>SMS
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('email')" id="tab-email">
+    <span class="tab-dot"></span>Email
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('direct-mail')" id="tab-direct-mail">
+    <span class="tab-dot"></span>Direct Mail
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('seo')" id="tab-seo">
+    <span class="tab-dot"></span>SEO / AI
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('listings')" id="tab-listings">
+    <span class="tab-dot"></span>Listings
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('reviews')" id="tab-reviews">
+    <span class="tab-dot"></span>Reviews
+  </button>
+  <button class="tab-btn status-yellow" onclick="showPage('organic-social')" id="tab-organic-social">
+    <span class="tab-dot"></span>Organic Social
+  </button>
+  <button class="tab-btn status-gray" onclick="showPage('ctv')" id="tab-ctv">
+    <span class="tab-dot"></span>CTV
+  </button>
+  <button class="tab-btn status-gray" onclick="showPage('paid-social')" id="tab-paid-social">
+    <span class="tab-dot"></span>Paid Social
+  </button>
+  <button class="tab-btn status-gray" onclick="showPage('programmatic')" id="tab-programmatic">
+    <span class="tab-dot"></span>Programmatic
+  </button>
+</nav>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: OVERVIEW
+════════════════════════════════════════════════ -->
+<div class="page active" id="page-overview">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; padding-bottom:20px; border-bottom:2px solid var(--border);">
+    <div>
+      <div class="page-title">Primary KPI <span>Rollup</span></div>
+      <div class="page-subtitle">All channels · Primary KPIs vs. 2026 targets · Click any card to drill in</div>
     </div>
-    <div style="text-align:right">
-      <div class="rw-stat" id="rw-rate">—</div>
-      <div style="font-size:11px;color:var(--muted)">of items have rework</div>
-    </div>
-  </div>
-
-  <div>
-    <div class="sh"><div class="sh-dot"></div>Overview</div>
-    <div class="kpi-row">
-      <div class="kpi kpi-click" onclick="showKPIDrill('items')">
-        <div class="kpi-color-bar" style="background:var(--red)"></div>
-        <div class="kpi-lbl">Items Analyzed</div>
-        <div class="kpi-val" style="color:var(--red)" id="kv-items">—</div>
-        <div class="kpi-sub" id="ks-items">—</div>
-        <div class="kpi-drillhint">Click to drill in →</div>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-family:var(--font-semi); font-weight:600; letter-spacing:0.5px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div>ON TARGET
       </div>
-
-      <div class="kpi kpi-click" onclick="showKPIDrill('topstatus_avg')">
-        <div class="kpi-color-bar" style="background:var(--blue)"></div>
-        <div class="kpi-lbl">Avg in Top Status</div>
-        <div class="kpi-val" style="color:var(--blue)" id="kv-queue">—</div>
-        <div class="kpi-sub" id="ks-queue">Largest pre-production stage</div>
-        <div class="kpi-drillhint">Click to drill in →</div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-family:var(--font-semi); font-weight:600; letter-spacing:0.5px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>NEEDS ATTENTION
       </div>
-
-      <div class="kpi kpi-click" onclick="showKPIDrill('dominance')">
-        <div class="kpi-color-bar" style="background:var(--amber)"></div>
-        <div class="kpi-lbl">Top Status Dominance</div>
-        <div class="kpi-val" style="color:var(--amber)" id="kv-dominance">—</div>
-        <div class="kpi-sub">Share of all tracked time</div>
-        <div class="kpi-drillhint">Click to drill in →</div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-family:var(--font-semi); font-weight:600; letter-spacing:0.5px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--fsa-red)"></div>BELOW TARGET
       </div>
-
-      <div class="kpi kpi-click" onclick="showKPIDrill('rfr')">
-        <div class="kpi-color-bar" style="background:var(--purple)"></div>
-        <div class="kpi-lbl">Avg Ready for Review</div>
-        <div class="kpi-val" style="color:var(--purple)" id="kv-rfr">—</div>
-        <div class="kpi-sub" id="ks-rfr">—</div>
-        <div class="kpi-drillhint">Click to drill in →</div>
-      </div>
-
-      <div class="kpi kpi-click" onclick="showKPIDrill('approve')">
-        <div class="kpi-color-bar" style="background:var(--green)"></div>
-        <div class="kpi-lbl">Avg Time to Approve</div>
-        <div class="kpi-val" style="color:var(--green)" id="kv-approve">—</div>
-        <div class="kpi-sub">Once approved</div>
-        <div class="kpi-drillhint">Click to drill in →</div>
-      </div>
-    </div>
-  </div>
-
-  <div>
-    <div class="sh"><div class="sh-dot"></div>Top Bottlenecks</div>
-    <div class="bottleneck-row" id="bottleneck-row"></div>
-  </div>
-
-  <div>
-    <div class="sh"><div class="sh-dot"></div>Status Time Rollup</div>
-    <div class="three-col">
-      <div class="card">
-        <div class="ctitle">Average Time Per Status</div>
-        <div class="csub">Cumulative per item — re-entries to prior statuses treated as additive</div>
-        <div class="sort-control">
-          <span style="font-size:11px;color:var(--muted);font-weight:500">Sort:</span>
-          <button class="sort-btn" id="sort-asc" onclick="setSort('asc')">↑ Workflow Order</button>
-          <button class="sort-btn active" id="sort-desc" onclick="setSort('desc')">↓ Highest Avg First</button>
-        </div>
-        <div class="sbars" id="overall-bars"></div>
-      </div>
-      <div class="card">
-        <div class="ctitle">Avg Time by Month</div>
-        <div class="csub">Hover for details — top statuses across all months</div>
-        <div class="chart-wrap"><canvas id="month-chart"></canvas></div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-family:var(--font-semi); font-weight:600; letter-spacing:0.5px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--muted)"></div>PENDING DATA
       </div>
     </div>
   </div>
 
-  <div>
-    <div class="sh"><div class="sh-dot"></div>Group Comparison</div>
+  <!-- Summary KPI Cards -->
+  <div class="kpi-grid" id="summaryKpiGrid">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- Overview Table -->
+  <div class="section-label">All Channels at a Glance</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding:14px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <div class="card-title" style="margin-bottom:0;">Channel Performance Summary</div>
+      <div style="font-size:11px; color:var(--muted);">Click any row to view channel detail →</div>
+    </div>
+    <div style="padding:0 8px 8px;">
+      <div id="overviewRows"></div>
+    </div>
+  </div>
+
+  <!-- Strategic Notes -->
+  <div class="section-label" style="margin-top:24px;">Strategic Context</div>
+  <div class="two-col">
     <div class="card">
-      <div class="ctitle">Avg Time Per Status by Group</div>
-      <div class="csub">Hover for details — responds to group &amp; month filters above</div>
-      <div class="chart-wrap"><canvas id="group-chart" style="max-height:240px"></canvas></div>
+      <div class="card-title">Priority Focus Areas — Q1 2026</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Improve Paid Google Store Visit Rate (currently below 20% target). Investigate Search vs PMax attribution gap.</li>
+        <li><div class="action-bullet">2</div>Grow SMS opt-in rate from 0.6% toward 1.0% EoY target via web QR codes, email blocks, paid media sign-ups.</li>
+        <li><div class="action-bullet">3</div>Drive Email CTOR improvement on Journey emails (1.87% → 2.1% Q1 target) by adding stronger CTAs.</li>
+        <li><div class="action-bullet">4</div>Stabilize Listings impressions — investigate PMax/Demand Gen impact on GBP impression decline.</li>
+        <li><div class="action-bullet">5</div>Establish new agency relationships for Paid Social and Programmatic to unlock those channels.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Data Readiness Status</div>
+      <div class="data-status ok"><div class="status-dot"></div>Paid Search — Daily export available via Google Ads</div>
+      <div class="data-status ok"><div class="status-dot"></div>SMS — Monthly data via Cinch dashboard</div>
+      <div class="data-status ok"><div class="status-dot"></div>Direct Mail — Period totals via DripDrop</div>
+      <div class="data-status ok"><div class="status-dot"></div>Web — Daily via GA4/Looker Studio</div>
+      <div class="data-status warn"><div class="status-dot"></div>Email — Template totals only; working with Cinch for daily</div>
+      <div class="data-status warn"><div class="status-dot"></div>Listings / Reviews — Annual/quarterly aggregates only</div>
+      <div class="data-status warn"><div class="status-dot"></div>SEO/AI — No historical capture yet</div>
+      <div class="data-status hold"><div class="status-dot"></div>Paid Social / Programmatic — HOLD (new agency)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: PAID SEARCH
+════════════════════════════════════════════════ -->
+<div class="page" id="page-paid-search">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-paid-search">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-paid-search">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">PAID SEARCH</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Google Ads</span>
+        <span class="badge badge-owner">Owner: Bethany</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-high">High Impact</span>
+      </div>
+    </div>
+    <div class="data-status ok" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Jan 28 – Feb 24, 2026 · Google Ads export
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Store Visit Rate (Search)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--fsa-red); letter-spacing:1px; font-weight:700;">3.6%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 9,866 visits / 72,450 clicks</span><span>Target: 20% (Q1) → 25% (EoY)</span></div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:18%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Search campaign only. PMax (14,543 clicks, 3,799 visits = 26%) and Demand Gen (50,071 clicks, 14,188 visits = 28%) are actually beating the target — but attribution methodology needs validation before blending.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Secondary KPI — CPC by Campaign Type</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">$2.97</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Search avg CPC (Jan 28–Feb 24)</span><span>Target: Minimize (mix-dependent)</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:60%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Search: $2.97 · PMax: $4.31 · Demand Gen: $0.94. Total period spend: $324,842.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Cost per Store Visit</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--muted); letter-spacing:1px; font-weight:700;">—</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Need Store Visit data in export to calculate.<br>Search historically shows 3:1 Store Visits to service appointments.</div>
     </div>
   </div>
 
   <div class="two-col">
     <div class="card">
-      <div class="ctitle">Status Transition Flow</div>
-      <div class="csub">Most common paths — ↺ marks transitions that create rework loops</div>
-      <div class="tlist" id="trans-list"></div>
+      <div class="card-title">Campaign Type Breakdown (Jan 28 – Feb 24, 2026)</div>
+      <div class="metric-row">
+        <div class="metric-name">Search</div>
+        <div class="metric-values">
+          <span class="metric-current">$215,203</span>
+          <span class="metric-target">72,450 clicks · 908K impr.</span>
+          <span class="metric-vs">CPC $2.97 · SVR 13.6%</span>
+        </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Performance Max</div>
+        <div class="metric-values">
+          <span class="metric-current">$62,693</span>
+          <span class="metric-target">14,543 clicks · 2.05M impr.</span>
+          <span class="metric-vs">CPC $4.31 · SVR 26.1%</span>
+        </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Demand Gen</div>
+        <div class="metric-values">
+          <span class="metric-current">$46,946</span>
+          <span class="metric-target">50,071 clicks · 271K impr.</span>
+          <span class="metric-vs">CPC $0.94 · SVR 28.3%</span>
+        </div>
+      </div>
+      <div class="metric-row" style="font-weight:600;">
+        <div class="metric-name">Total</div>
+        <div class="metric-values">
+          <span class="metric-current">$324,842</span>
+          <span class="metric-target">137,064 clicks</span>
+          <span class="metric-vs">27,853 store visits</span>
+        </div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:12px;">SVR = Store Visit Rate (Visits/Clicks). PMax and Demand Gen SVR look strong but attribution methodology must be validated before blending with Search.</div>
     </div>
     <div class="card">
-      <div class="ctitle">Items by Total Time</div>
-      <div class="csub">↺ = rework detected · Click any row for full breakdown</div>
-      <div class="table-controls">
-        <span style="font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap">Sort:</span>
-        <div class="table-sort-group">
-          <button class="tsort-btn active" data-tsort="total-desc" onclick="setTableSort('total-desc')">↓ Total</button>
-          <button class="tsort-btn" data-tsort="total-asc"  onclick="setTableSort('total-asc')">↑ Total</button>
-          <button class="tsort-btn" data-tsort="name-asc"   onclick="setTableSort('name-asc')">A–Z</button>
-          <button class="tsort-btn" data-tsort="month-asc"  onclick="setTableSort('month-asc')">Month</button>
-          <button class="tsort-btn" data-tsort="rework"     onclick="setTableSort('rework')">↺ Rework First</button>
-        </div>
-        <div class="fdiv" style="margin:0 2px"></div>
-        <div class="dropdown-wrap" id="status-dropdown-wrap">
-          <div class="dropdown-trigger" id="status-trigger" onclick="toggleDropdown()">
-            <span id="status-trigger-label">Filter by Status</span>
-            <span class="dt-arrow">▼</span>
-          </div>
-          <div class="dropdown-menu" id="status-menu">
-            <div class="dd-search"><input type="text" placeholder="Search statuses…" id="dd-search-input" oninput="filterDropdownSearch(this.value)"></div>
-            <div class="dd-actions"><span class="dd-action" onclick="selectAllStatuses()">All</span><span class="dd-action" onclick="clearAllStatuses()">Clear</span></div>
-            <div id="dd-items-list"></div>
-          </div>
-        </div>
-        <span style="font-size:11px;color:var(--muted);margin-left:2px" id="item-count">—</span>
+      <div class="card-title">Key Actions to Move the KPI</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Establish Search:Store Visit ratio baseline (currently 3:1 for Search; PMax/Demand Gen unstudied). Prioritize this analysis to connect ad spend to in-store traffic.</li>
+        <li><div class="action-bullet">2</div>Create a unified efficiency metric combining Store Visit Rate + CPC into a single Cost per Car proxy.</li>
+        <li><div class="action-bullet">3</div>Investigate latency window: Click → Store Visit. Understand lag before optimizing bidding.</li>
+        <li><div class="action-bullet">4</div>Primary breakout: All Google first, then Search / PMax / Demand Gen secondary once attribution is understood.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="notes-box">
+    <strong>Strategic Note:</strong> Google Store Visit metric is the bridge between digital spend and in-store traffic. Until this ratio is understood for PMax and Demand Gen (beyond the 3:1 established for Search), optimize toward CPC as the primary efficiency lever. Mix is dependent on campaign type, so avoid blended targets until segmented data matures.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: WEB
+════════════════════════════════════════════════ -->
+<div class="page" id="page-web">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-web">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-web">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">WEB</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Google Analytics 4</span>
+        <span class="badge badge-owner">Owner: TBD</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-high">High Impact</span>
       </div>
-      <div class="tscroll">
-        <table>
-          <thead><tr>
-            <th onclick="setTableSort('name-asc')">Item <span id="ind-name"></span></th>
-            <th>Group</th>
-            <th onclick="setTableSort('month-asc')">Month <span id="ind-month"></span></th>
-            <th>Breakdown</th>
-            <th class="r" onclick="setTableSort(tableSortMode==='total-desc'?'total-asc':'total-desc')">Total <span id="ind-total">↓</span></th>
-          </tr></thead>
-          <tbody id="items-tbody"></tbody>
-        </table>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Daily via GA4 — export missing Month dimension
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Total Sessions</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">1.55M</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>All channels combined</span><span>Target: establish Q4 baseline</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:75%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Organic Search dominant at 875K (56%). Paid Search 381K (25%). Export missing Month — full date dimension needed from Looker Studio.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Event — Get Directions CTA</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">7K</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: ~7,000/30d</span><span>Target: 8,500/30d</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:82%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">82% to target. Strong leading indicator for in-store visits.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Risk Monitor — Lighthouse Score</div>
+      <div style="font-family:var(--font-display); font-size:44px; color:var(--amber); letter-spacing:1px; font-weight:700;">WATCH</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">GTM changes may impact page load speed. Monitor Lighthouse scores — establish thresholds before next GTM deployment.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Sessions by Channel Group</div>
+      <div class="metric-row">
+        <div class="metric-name">Organic Search</div>
+        <div class="metric-values"><span class="metric-current">875,482</span><span class="metric-target">56% of total</span><span class="kpi-delta delta-pos">Primary</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Paid Search</div>
+        <div class="metric-values"><span class="metric-current">380,838</span><span class="metric-target">25% of total</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Cross-network</div>
+        <div class="metric-values"><span class="metric-current">100,643</span><span class="metric-target">6% of total</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Direct</div>
+        <div class="metric-values"><span class="metric-current">81,189</span><span class="metric-target">5% of total</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Paid Social</div>
+        <div class="metric-values"><span class="metric-current">66,507</span><span class="metric-target">4% of total</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">All Other</div>
+        <div class="metric-values"><span class="metric-current">49,351</span><span class="metric-target">3% of total</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:12px;">Export missing Month dimension — add full Date field in Looker Studio for proper trending.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions to Move the KPI</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Fix Looker Studio export: add full Date (YYYY-MM-DD) dimension to eliminate month-assumption workaround.</li>
+        <li><div class="action-bullet">2</div>Investigate top organic session source path queries (Sam investigating). Tie findings to content strategy.</li>
+        <li><div class="action-bullet">3</div>Establish Sessions-to-Store Visit conversion rate — this becomes your web efficiency proxy for exec reporting once Store Visit data is available.</li>
+        <li><div class="action-bullet">4</div>Resolve Key Event tracking for Coupon Request (HOLD: 829 figures out Key Event tracking first).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: SMS
+════════════════════════════════════════════════ -->
+<div class="page" id="page-sms">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-sms">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-sms">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">SMS</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Cinch / Twilio</span>
+        <span class="badge badge-owner">Owner: Brian</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-med">Medium Impact</span>
+      </div>
+    </div>
+    <div class="data-status ok" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Monthly data available via Cinch dashboard
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Opt-in Rate</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">0.6%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 0.6%</span><span>EoY Target: 1.0%</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:60%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Opt-ins / Total Population. Competitors benchmark ~1%. Q1 target holds at 0.6% — focus on EoY growth.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Secondary — Coupon Redemption Rate</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">0.2%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 0.2%</span><span>Target: 0.5%</span></div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:40%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">SMS Coupon Redemptions / Total SMS Sends containing coupon.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly Send Volume (Feb 2026)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--fsa-red); letter-spacing:1px; font-weight:700;">88.8K</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Outgoing messages. Delivery rate: 91.5% (81,260 delivered). Volume trending down from 102K peak (Mar 2025) — monitor for list health issues.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Monthly Send Trend (Cinch Export)</div>
+      <div class="metric-row">
+        <div class="metric-name">Feb 2026</div>
+        <div class="metric-values"><span class="metric-current">88,804 sent</span><span class="metric-target">81,260 delivered</span><span class="metric-vs">91.5%</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Jan 2026</div>
+        <div class="metric-values"><span class="metric-current">89,245 sent</span><span class="metric-target">81,469 delivered</span><span class="metric-vs">91.3%</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Dec 2025</div>
+        <div class="metric-values"><span class="metric-current">91,313 sent</span><span class="metric-target">83,660 delivered</span><span class="metric-vs">91.6%</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Aug 2025 (peak)</div>
+        <div class="metric-values"><span class="metric-current">113,206 sent</span><span class="metric-target">105,046 delivered</span><span class="metric-vs">92.8%</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:12px;">Send volume declining since Aug 2025 peak. Investigate list health and whether campaign cadence has changed.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions to Grow Opt-in Rate</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Add SMS opt-in blocks to more webpages and email campaigns. Include QR codes at point of service.</li>
+        <li><div class="action-bullet">2</div>Run SMS-specific blast campaigns tied to returning car promotions.</li>
+        <li><div class="action-bullet">3</div>Use paid media to drive sign-ups. Competitors are at ~1% — close the gap.</li>
+        <li><div class="action-bullet">4</div>Tie opt-in growth to Return Rate (existing customers) as the downstream KPI to validate strategy.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: EMAIL
+════════════════════════════════════════════════ -->
+<div class="page" id="page-email">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-email">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-email">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">EMAIL</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Cinch</span>
+        <span class="badge badge-owner">Owner: Brian</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-high">High Impact</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Template totals only — working with Cinch for daily data
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Journey CTOR</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--fsa-red); letter-spacing:1px; font-weight:700;">1.54%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current (12m): 1.54%</span><span>Q1 Target: 2.1% · EoY: 4.0%</span></div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:73%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Below the 1.87% baseline from KPI doc — and below Q1 target of 2.1%. Adding CTAs to Journey emails is the primary lever. 9 Journey templates, 1.2M sends.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Primary KPI — Eblast CTOR</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">1.11%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current (12m): 1.11%</span><span>Q1 Target: 1.25%</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:89%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Closer to target. 169 Eblast templates, 22.7M sends. Strong volume — focus on click engagement within opens.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Overall Send Performance</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">23.9M</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Total sends across 178 templates (12m). Overall CTOR: 1.13%. No date dimension available — daily data pending from Cinch.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Data Availability</div>
+      <div class="data-status warn"><div class="status-dot"></div>Current data: template-level aggregates (past 12 months total)</div>
+      <div class="data-status warn"><div class="status-dot"></div>No date dimension available — cannot trend over time yet</div>
+      <div class="data-status hold"><div class="status-dot"></div>Working with Cinch to obtain daily/weekly send-level data</div>
+      <div style="font-size:12px; color:var(--muted); margin-top:14px; line-height:1.6;">
+        Once daily data is available, this tab will show: send volume trends, CTOR over time, journey vs eblast comparison, and suppressed audience sizing.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions to Move the KPI</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Add stronger CTA to Journey emails — this is the single highest-leverage action to move CTOR from 1.87% → 2.1%.</li>
+        <li><div class="action-bullet">2</div>Prioritize Cinch daily export — email is a High Impact channel but is currently data-blind for trending.</li>
+        <li><div class="action-bullet">3</div>Review suppressed audience sizing — ensure active database is maximized before adding opt-in volume.</li>
+        <li><div class="action-bullet">4</div>Tie email CTOR improvements to Return Rate as the downstream validation metric.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: DIRECT MAIL
+════════════════════════════════════════════════ -->
+<div class="page" id="page-direct-mail">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-direct-mail">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-direct-mail">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">DIRECT MAIL</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Drip Drop</span>
+        <span class="badge badge-owner">Owner: Brian</span>
+        <span class="badge badge-lag">Lagging Indicator</span>
+        <span class="badge badge-impact-low">Low Impact (current)</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Period totals only — no drop dates yet
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Overall Household Response Rate</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--green); letter-spacing:1px; font-weight:700;">7.26%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Overall: 206,615 HH responses / 2.85M cards</span><span>New HH Target: 2.75% EoY</span></div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Overall rate well above the 2.75% target — but note: target is for <strong>new households only</strong>. Need new vs existing HH separation to measure accurately against goal.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Cards Mailed & Responses</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">2.85M</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Cards mailed across 269 locations. 206,615 household responses. 2026 budget shifting to 90% new households.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Location Range</div>
+      <div style="font-family:var(--font-display); font-size:36px; color:var(--fsa-red); letter-spacing:1px; font-weight:700;">5.7–15%</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Response rate range across locations. Significant variance — radius segmentation (urban vs rural) likely explains much of the spread.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Attribution Notes</div>
+      <div class="notes-box" style="margin-bottom:0;">
+        <strong>Maturity window:</strong> 105 days to full maturity. 16-week validity window. Remove outliers before calculating response rate.<br><br>
+        <strong>2026 budget shift:</strong> Moving toward 90% new household targeting — this changes the population, not the rate. Track new vs. existing response separately.<br><br>
+        <strong>Segmentation opportunity:</strong> Radius segmentation (urban vs rural) + New Mover + Competitor Conquest audiences to test.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions to Move the KPI</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Request drop-date level data from DripDrop — critical for measuring true maturity-adjusted response rate.</li>
+        <li><div class="action-bullet">2</div>Benchmark competitor response rates — put onus on DripDrop to provide industry comparisons.</li>
+        <li><div class="action-bullet">3</div>Test radius segmentation: urban vs rural performance likely differs significantly.</li>
+        <li><div class="action-bullet">4</div>Review templated creative approach — new creative may be needed to lift response rate toward 2.75%.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: SEO / AI
+════════════════════════════════════════════════ -->
+<div class="page" id="page-seo">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-seo">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-seo">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">SEO / AI VISIBILITY</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Scout / Yext / GSC</span>
+        <span class="badge badge-owner">Owner: Bethany</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-high">High Impact</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>No historical data capture in dashboard yet
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">SEO Primary — CTR (GSC)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">2.7%</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Baseline: 2.7%</span><span>Target: 3.0% (Q1) → 3.25% (EoY)</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:83%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Click-through rate from Google Search Console. Brand vs Non-Brand breakout needed.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">SEO Secondary — Avg. Position</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">19.1</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 19.1</span><span>Target: 15</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:72%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Lower is better. Content positioning on web is the primary lever to improve ranking.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">AI Visibility Score</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--green); letter-spacing:1px; font-weight:700;">91</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 91</span><span>Target: 95</span></div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:91%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">By Brand + Region + Platform (ROP focus). 96% to target — strong position.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">SEO Leading Indicator — Rankings</div>
+      <div class="metric-row">
+        <div class="metric-name">Top 3 Terms Ranked</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">3 priority terms TBD</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Brand CTR (GSC)</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">Breakout needed</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Non-Brand CTR (GSC)</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">Breakout needed</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Zero-Click Impressions</div>
+        <div class="metric-values"><span class="metric-current">~200K est.</span><span class="metric-target">Monitor via GSC+GA4</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:12px;">Estimated: GSC shows ~1M impressions, GA4 shows ~800K sessions → ~200K zero-click gap.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Define the 3 priority search terms for ranking tracking — lock these with Bethany as the SEO leading indicator.</li>
+        <li><div class="action-bullet">2</div>Build Brand vs Non-Brand CTR breakout in GSC — non-brand CTR is the acquisition signal.</li>
+        <li><div class="action-bullet">3</div>Marry GSC + GA4 data to quantify zero-click impressions (~200K estimated gap).</li>
+        <li><div class="action-bullet">4</div>Establish historical data capture in Scout/Yext dashboard before metrics are lost.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: LISTINGS
+════════════════════════════════════════════════ -->
+<div class="page" id="page-listings">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-listings">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-listings">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">LISTINGS</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">GBP / Apple / Yext / Scout</span>
+        <span class="badge badge-owner">Owner: Louis</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-low">Low Impact (current)</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Annual aggregates only — no monthly trending yet
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Action Rate (Actions/1K Impressions)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">—</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Target: 2.7% (Q1) → 3.0% (EoY)</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:0%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Google Listings only (ROP/GM). All Actions currently — action separation coming via Yext development.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">2025 Total Actions (GM)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">—</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">2025 vs 2024 YoY data available in export. Upload Listings file to populate. Several locations showing -10% to -81% YoY changes.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Impression Threshold Watch</div>
+      <div style="font-family:var(--font-display); font-size:44px; color:var(--fsa-red); letter-spacing:1px; font-weight:700;">DECLINE</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Impressions declining YoY across multiple locations. Investigate whether PMax / Demand Gen is cannibalizing GBP impressions.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Location-Level YoY (Sample)</div>
+      <div class="metric-row">
+        <div class="metric-name">Atlanta (Ponce de Leon)</div>
+        <div class="metric-values"><span class="metric-current">34,546 actions</span><span class="metric-target">2024: 38,423</span><span class="kpi-delta delta-neg">-10%</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Seattle (15th Ave NW)</div>
+        <div class="metric-values"><span class="metric-current">13,798 actions</span><span class="metric-target">2024: 20,836</span><span class="kpi-delta delta-neg">-34%</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Atlanta (Howell Mill)</div>
+        <div class="metric-values"><span class="metric-current">11,857 actions</span><span class="metric-target">2024: 13,765</span><span class="kpi-delta delta-neg">-14%</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:12px;">Declining trend across locations is a priority concern. Upload latest Listings file for full picture.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Investigate root cause of impression decline — is PMax/Demand Gen absorbing traffic that previously came through GBP?</li>
+        <li><div class="action-bullet">2</div>Work with Yext to separate action types (Call, Directions, Website) once their report development is complete.</li>
+        <li><div class="action-bullet">3</div>Identify which action type drives highest CTR and prioritize tactics around that action.</li>
+        <li><div class="action-bullet">4</div>Maintain accuracy and visibility scores — these are the levers for Listings performance.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGE: REVIEWS
+════════════════════════════════════════════════ -->
+<div class="page" id="page-reviews">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-reviews">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-reviews">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">REVIEWS</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">GBP / Yext / Scout</span>
+        <span class="badge badge-owner">Owner: Louis</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-med">Medium Impact</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Quarterly cadence — reviews are timestamped but no historical capture
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — % Reviews Responded To</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">—</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: from Reviews tab</span><span>Target: 20% improvement</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:0%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Upload Reviews file to populate. Key hypothesis: unresponded reviews are 5-star/no-comment. A "Thank you" response can significantly move this metric.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Star Rating</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--green); letter-spacing:1px; font-weight:700;">4.8</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: 4.8</span><span>Target: 4.85</span></div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Strong position. Small gap to target — focused response strategy should help.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">AI Brand Sentiment (Scout)</div>
+      <div style="font-family:var(--font-display); font-size:44px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">56/42/1</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Positive / Neutral / Negative %. Target: 65/35/0. Neutral-to-Positive conversion is the key opportunity.</div>
+      <div class="progress-wrap" style="margin-top:8px;">
+        <div class="progress-label"><span>Positive: 56%</span><span>Target: 65%</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:86%"></div></div>
       </div>
     </div>
   </div>
-</main>
 
-<!-- Overlay for click-out close -->
-<div id="panel-overlay" aria-hidden="true"></div>
-
-<div id="panel">
-  <button class="pclose" onclick="closePanel()">✕</button>
-  <div id="panel-content"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Review Response Strategy</div>
+      <div class="notes-box" style="margin-bottom:0;">
+        <strong>Hypothesis:</strong> Most unresponded reviews are 5-star with no text comment. A templated "Thank You for leaving a review" response to these would significantly increase the % responded metric.<br><br>
+        <strong>Action:</strong> Work with Yext MRR to update response templates/tone. Establish structured rules for which review types trigger which response template.<br><br>
+        <strong>Cadence:</strong> Quarterly review cadence — reviews per location per quarter, broken out by business unit.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Implement automated "Thank You" responses for 5-star/no-comment reviews via Yext — fastest path to moving % Responded metric.</li>
+        <li><div class="action-bullet">2</div>Update Yext response template repository — refresh tone and content to drive Neutral → Positive sentiment shift.</li>
+        <li><div class="action-bullet">3</div>Establish historical data capture so review trends can be tracked over time (currently only "as of now").</li>
+        <li><div class="action-bullet">4</div>Investigate whether unresponded reviews correlate with lower Return Rate (new vs existing customer impact).</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
+<!-- ════════════════════════════════════════════════
+     PAGE: ORGANIC SOCIAL
+════════════════════════════════════════════════ -->
+<div class="page" id="page-organic-social">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-organic-social">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-organic-social">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">ORGANIC SOCIAL</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Meta / Instagram</span>
+        <span class="badge badge-owner">Owner: Louis</span>
+        <span class="badge badge-lead">Leading Indicator</span>
+        <span class="badge badge-impact-low">Low Impact (current)</span>
+      </div>
+    </div>
+    <div class="data-status warn" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Manual/Meta export — no automated feed yet
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — Engagement Rate (Meta/GM Only)</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--amber); letter-spacing:1px; font-weight:700;">—</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>From Organic Social tab</span><span>Target: 5.0% (Q1) → 6.5% (EoY)</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:0%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted);">Actions / Impressions. GM Only (No ADI). Industry benchmark: 5%. Q1 goal: reach industry standard. EoY: surpass it.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Instagram — Follower Count</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--muted); letter-spacing:1px; font-weight:700;">—</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Follower Count is the primary IG KPI. Upload Organic Social export to populate. Net Follower Growth is the trend metric to watch.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Downstream Impact</div>
+      <div style="font-family:var(--font-display); font-size:44px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">RETURN</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Primary rollup KPI: Return Rate (New, 180d). Hypothesis: engagement with content drives in-store visits. Engagement-to-visit ratio TBD — study as channel matures.</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Metrics to Track</div>
+      <div class="metric-row">
+        <div class="metric-name">Reach</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">By brand breakout</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Engagement (Likes/Reactions)</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">Actions / Impressions</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Comments</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">Quality signal</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Shares</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">Amplification signal</span></div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Net Follower Growth</div>
+        <div class="metric-values"><span class="metric-current">—</span><span class="metric-target">New audience growth</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Establish engagement-to-store visit ratio baseline (analogous to Search's 3:1 Store Visit ratio). This unlocks the channel's ROI conversation with leadership.</li>
+        <li><div class="action-bullet">2</div>Build rural vs urban breakout for content performance — audience composition likely differs significantly by market type.</li>
+        <li><div class="action-bullet">3</div>Increase follower count as a new audience growth lever — define what "good" growth rate looks like vs industry.</li>
+        <li><div class="action-bullet">4</div>No ADI content currently — consider whether ADI expansion is appropriate given channel is Low Impact today.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     PAGES: HOLD CHANNELS
+════════════════════════════════════════════════ -->
+<div class="page" id="page-ctv">
+  <!-- AI Analysis -->
+  <div class="ai-analysis" id="ai-ctv">
+    <div class="ai-analysis-header">
+      <span class="ai-badge">AI Analysis</span>
+      <span class="ai-analysis-title">Inferential Performance Summary</span>
+    </div>
+    <div id="ai-content-ctv">
+      <div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>
+    </div>
+  </div>
+
+  <div class="channel-header">
+    <div>
+      <div class="channel-title">CTV</div>
+      <div class="channel-meta-row">
+        <span class="badge badge-vendor">Mountain</span>
+        <span class="badge badge-owner">Owner: Bethany</span>
+        <span class="badge badge-lag">Lagging Indicator</span>
+      </div>
+    </div>
+    <div class="data-status hold" style="margin-bottom:0; align-self:flex-start;">
+      <div class="status-dot"></div>Partial data — establishing baseline
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Primary KPI — CPM</div>
+      <div style="font-family:var(--font-display); font-size:52px; color:var(--charcoal); letter-spacing:1px; font-weight:700;">$55</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Current: $55</span><span>Target: $50 (lower is better)</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:80%"></div></div>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:8px;">Cost per 1,000 impressions. Secondary: Offline Conversion Metric (~$20 avg/conversion target). URL-specific web conversion tracking needed.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Actions</div>
+      <ul class="action-list">
+        <li><div class="action-bullet">1</div>Establish URL-specific web conversion tracking to measure CTV-driven traffic separately.</li>
+        <li><div class="action-bullet">2</div>Build offline conversion metric — target ~$20/conversion as the efficiency benchmark.</li>
+        <li><div class="action-bullet">3</div>Track Reach alongside CPM — impressions alone don't tell the story without unique reach data.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-paid-social">
+  <div class="hold-overlay">
+    <div class="hold-icon">⏸</div>
+    <div class="hold-title">PAID SOCIAL — ON HOLD</div>
+    <div class="hold-desc">New agency onboarding in progress. This channel will be activated once agency relationship and data access are established. Primary KPI and targets TBD.</div>
+    <div class="channel-meta-row" style="justify-content:center; margin-top:8px;">
+      <span class="badge badge-hold">HOLD — New Agency</span>
+      <span class="badge badge-owner">Owner: Bethany</span>
+      <span class="badge badge-impact-low">Low Impact (current)</span>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-programmatic">
+  <div class="hold-overlay">
+    <div class="hold-icon">⏸</div>
+    <div class="hold-title">PROGRAMMATIC — ON HOLD</div>
+    <div class="hold-desc">New agency onboarding in progress. Preliminary target: CPC of $22.50 (down from $25 current). Secondary KPI: Cost per Click. Activate once agency and data access confirmed.</div>
+    <div class="channel-meta-row" style="justify-content:center; margin-top:8px;">
+      <span class="badge badge-hold">HOLD — New Agency</span>
+      <span class="badge badge-owner">Owner: Bethany</span>
+      <span class="badge badge-impact-low">Low Impact (current)</span>
+    </div>
+    <div class="card" style="margin-top:20px; max-width:400px; text-align:left;">
+      <div class="card-title">When Ready</div>
+      <div class="metric-row"><div class="metric-name">Primary KPI</div><div class="metric-values"><span class="metric-current">CPC</span><span class="metric-target">Target: $22.50</span></div></div>
+      <div class="metric-row"><div class="metric-name">Current Baseline</div><div class="metric-values"><span class="metric-current">$25.00</span><span class="metric-target">-10% goal</span></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ── COLORS ────────────────────────────────────────────────────────────────────
-const DEFAULT_SC = {"New":"#94a3b8","Creative Queue":"#C8102E","Ready for Creative":"#1d6fb8","Working on it":"#0d7c74","Ready for Review":"#5b4fcf","Channel Approval":"#b45309","Changes Required":"#c2530a","Approved":"#1a7a52","Delivered":"#166534","EXTERNAL":"#7c3aed","Stuck":"#991b1b","Backlog/Deferred":"#6b7280"};
-const GC = {"Creative Production":{bg:"#fde8eb",text:"#9b0e22",border:"#f5a0ab"},"Creative Queue (Up Next)":{bg:"#dbeafe",text:"#1e40af",border:"#93c5fd"},"Tactical Plans Sandbox":{bg:"#fef3c7",text:"#92400e",border:"#fcd34d"}};
-const COLOR_POOL = ["#C8102E","#1d6fb8","#0d7c74","#5b4fcf","#b45309","#c2530a","#1a7a52","#991b1b","#7c3aed","#94a3b8","#166534","#6b7280","#0ea5e9","#d97706"];
-let SC = {...DEFAULT_SC};
-
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let DATA = null;
-let ag = 'all', am = 'all', sortMode = 'desc', tableSortMode = 'total-desc';
-let selectedStatuses = new Set();
-let gcInst = null, mcInst = null;
-let _pendingCSV = null, _pendingFilename = null;
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-function fmt(h){
-  const d=Math.floor(h/24),r=Math.round(h-d*24);
-  if(d>0&&r>0)return`${d}d ${r}h`;
-  if(d>0)return`${d}d`;
-  return h>0?(r===0?'<1h':`${r}h`):'0h';
-}
-function pct(n,d){return d?Math.round(n/d*100)+'%':'—';}
-function statusColor(s){if(SC[s])return SC[s];const idx=Object.keys(SC).length%COLOR_POOL.length;SC[s]=COLOR_POOL[idx];return SC[s];}
-function median(arr){
-  const a=[...arr].filter(v=>Number.isFinite(v)).sort((x,y)=>x-y);
-  if(!a.length) return null;
-  const m=Math.floor(a.length/2);
-  return a.length%2 ? a[m] : (a[m-1]+a[m])/2;
-}
-function percentile(arr, p){
-  const a=[...arr].filter(v=>Number.isFinite(v)).sort((x,y)=>x-y);
-  if(!a.length) return null;
-  const idx=(p/100)*(a.length-1);
-  const lo=Math.floor(idx), hi=Math.ceil(idx);
-  if(lo===hi) return a[lo];
-  return a[lo] + (a[hi]-a[lo])*(idx-lo);
-}
-function safeHtml(s){return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-
-// ── LIBRARY ───────────────────────────────────────────────────────────────────
-const LIB_KEY = 'fsa_dataset_library';
-function libLoad(){try{return JSON.parse(localStorage.getItem(LIB_KEY)||'[]');}catch{return[];}}
-function libSave(lib){
-  try{localStorage.setItem(LIB_KEY,JSON.stringify(lib));return true;}
-  catch(e){showStatus('err','Storage full — remove old datasets first.');return false;}
-}
-
-// ── LANDING ───────────────────────────────────────────────────────────────────
-function goToLanding(){
-  document.getElementById('landing').style.display='';
-  document.getElementById('main-content').style.display='none';
-  document.getElementById('filter-bar').style.display='none';
-  document.getElementById('back-btn').style.display='none';
-  document.getElementById('save-lib-btn').style.display='none';
-  document.getElementById('header-sub').textContent='Marketing Leadership · Status Time Analysis';
-  closeContextMenu();
-  renderLanding();
-}
-
-function renderLanding(){
-  const lib = libLoad();
-  const hasItems = document.getElementById('lib-has-items');
-  const noItems  = document.getElementById('lib-no-items');
-  const grid     = document.getElementById('library-grid');
-
-  if(lib.length>0){
-    hasItems.style.display=''; noItems.style.display='none';
-    grid.innerHTML = lib.map(e=>{
-      const date = new Date(e.addedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      const rw   = e.summary?.reworkRate!=null ? Math.round(e.summary.reworkRate*100)+'%' : null;
-      const items = e.summary?.items ?? '—';
-      const months = (e.summary?.months||[]).join(' · ');
-      return `<div class="dataset-card" onclick="loadFromLibrary('${e.id}')">
-        <div class="dc-top">
-          <div class="dc-icon">📊</div>
-          <button class="dc-menu-btn" onclick="event.stopPropagation();showCtxMenu('${e.id}',this)" title="Options">⋯</button>
-        </div>
-        <div>
-          <div class="dc-name">${safeHtml(e.name)}</div>
-          ${e.board?`<div class="dc-board">${safeHtml(e.board)}</div>`:''}
-        </div>
-        <div class="dc-meta">
-          <span class="dc-chip blue">${items} items</span>
-          ${rw?`<span class="dc-chip red">↺ ${rw} rework</span>`:''}
-          ${months?`<span class="dc-chip">${safeHtml(months)}</span>`:''}
-        </div>
-        <div class="dc-added">Added ${date} · ${safeHtml(e.filename)}</div>
-      </div>`;
-    }).join('');
-  } else {
-    hasItems.style.display='none'; noItems.style.display='';
+// ═══════════════════════════════════════════════════════════════════
+// CHANNEL DATA  —  edit current/target/status/pct/note to update manually
+// Status: "green" | "yellow" | "red" | "gray"
+// pct: 0–100 progress toward target
+// Last auto-refresh: populated by upload parser below
+// ═══════════════════════════════════════════════════════════════════
+const CHANNELS = [
+  {
+    id: "paid-search", name: "Paid Search", vendor: "Google Ads",
+    primaryKpi: "Store Visit Rate (Visits / Clicks)",
+    current: "3.6%", target: "20% (Q1)", status: "red", pct: 18,
+    note: "9,866 Search store visits on $215K spend. PMax/Demand Gen ratios unstudied.",
+    indicator: "Leading", owner: "Bethany"
+  },
+  {
+    id: "web", name: "Web", vendor: "GA4",
+    primaryKpi: "Sessions by Source",
+    current: "1.55M", target: "Q4 + Seasonality baseline", status: "yellow", pct: 75,
+    note: "Organic Search leads at 875K sessions. Paid Search 381K. Full date dimension needed.",
+    indicator: "Leading", owner: "TBD"
+  },
+  {
+    id: "sms", name: "SMS", vendor: "Cinch / Twilio",
+    primaryKpi: "Opt-in Rate",
+    current: "0.6%", target: "1.0% EoY", status: "yellow", pct: 60,
+    note: "~89K outgoing/mo (Feb 2026). Delivery rate 91.5%. Competitors benchmark ~1%.",
+    indicator: "Leading", owner: "Brian"
+  },
+  {
+    id: "email", name: "Email", vendor: "Cinch",
+    primaryKpi: "CTOR (Journey / Eblast)",
+    current: "1.54% / 1.11%", target: "2.1% / 1.25% (Q1)", status: "yellow", pct: 73,
+    note: "Journey CTOR below 1.87% baseline — add CTAs. 23.9M total sends across 178 templates.",
+    indicator: "Leading", owner: "Brian"
+  },
+  {
+    id: "direct-mail", name: "Direct Mail", vendor: "Drip Drop",
+    primaryKpi: "Household Response Rate",
+    current: "7.26%", target: "2.75% EoY (new HH only)", status: "green", pct: 100,
+    note: "206K HH responses on 2.85M cards mailed. Overall rate well above target.",
+    indicator: "Lagging", owner: "Brian"
+  },
+  {
+    id: "seo", name: "SEO / AI", vendor: "Scout / Yext / GSC",
+    primaryKpi: "CTR (GSC) + AI Visibility Score",
+    current: "2.7% CTR / 91 AI Score", target: "3.0% CTR / 95 AI Score", status: "yellow", pct: 83,
+    note: "No historical data capture yet — establish pipeline urgently.",
+    indicator: "Leading", owner: "Bethany"
+  },
+  {
+    id: "listings", name: "Listings", vendor: "GBP / Yext",
+    primaryKpi: "Action Rate (Actions / 1K Impressions)",
+    current: "—", target: "2.7% (Q1) → 3.0% EoY", status: "yellow", pct: 0,
+    note: "Actions declining YoY at multiple locations (-10% to -81%). Investigate PMax impact.",
+    indicator: "Leading", owner: "Louis"
+  },
+  {
+    id: "reviews", name: "Reviews", vendor: "GBP / Yext",
+    primaryKpi: "% Reviews Responded To",
+    current: "4.8★", target: "4.85★ / +20% response rate", status: "yellow", pct: 96,
+    note: "Star rating strong at 4.8. Response rate strategy needed to hit +20% target.",
+    indicator: "Leading", owner: "Louis"
+  },
+  {
+    id: "organic-social", name: "Organic Social", vendor: "Meta / Instagram",
+    primaryKpi: "Avg Post Engagement Rate",
+    current: "—", target: "5.0% (Q1) → 6.5% EoY", status: "yellow", pct: 0,
+    note: "Industry benchmark: 5%. GM Only. Export needed to populate current rate.",
+    indicator: "Leading", owner: "Louis"
+  },
+  {
+    id: "ctv", name: "CTV", vendor: "Mountain",
+    primaryKpi: "CPM",
+    current: "$55", target: "$50", status: "yellow", pct: 80,
+    note: "Establishing offline conversion metric. URL-specific tracking needed.",
+    indicator: "Lagging", owner: "Bethany"
+  },
+  {
+    id: "paid-social", name: "Paid Social", vendor: "TBD",
+    primaryKpi: "HOLD — New Agency",
+    current: "—", target: "TBD", status: "gray", pct: 0,
+    note: "On hold — new agency onboarding in progress.",
+    indicator: "—", owner: "Bethany"
+  },
+  {
+    id: "programmatic", name: "Programmatic", vendor: "TBD",
+    primaryKpi: "CPC",
+    current: "$25", target: "$22.50", status: "gray", pct: 0,
+    note: "On hold — new agency onboarding in progress.",
+    indicator: "Leading", owner: "Bethany"
   }
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// UPLOAD PANEL
+// ═══════════════════════════════════════════════════════════════════
+const pendingFiles = {};
+const FILE_SLOTS = ['google-ads','cinch-sms','cinch-email','dripdrop','web-ga4'];
+
+function toggleUploadPanel() {
+  const panel = document.getElementById('uploadPanel');
+  const btn   = document.getElementById('uploadToggleBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  btn.textContent = open ? '✕ Close' : '↑ Refresh Data';
 }
 
-// ── CONTEXT MENU ──────────────────────────────────────────────────────────────
-let _ctxId = null;
-function showCtxMenu(id, btn){
-  closeContextMenu();
-  _ctxId = id;
-  const menu = document.createElement('div');
-  menu.className = 'ctx-menu'; menu.id = 'ctx-menu';
-  menu.innerHTML = `
-    <div class="ctx-item" onclick="renameEntry('${id}')">✏️ &nbsp;Rename</div>
-    <div class="ctx-item danger" onclick="deleteEntry('${id}')">🗑 &nbsp;Remove from Library</div>`;
-  btn.closest('.dataset-card').appendChild(menu);
-}
-function closeContextMenu(){
-  const m = document.getElementById('ctx-menu');
-  if(m) m.remove();
-  _ctxId = null;
-}
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.ctx-menu') && !e.target.closest('.dc-menu-btn')) closeContextMenu();
-  if(!e.target.closest('#status-dropdown-wrap')){
-    document.getElementById('status-menu')?.classList.remove('open');
-    document.getElementById('status-trigger')?.classList.remove('open');
-  }
-});
-
-function loadFromLibrary(id){
-  const entry = libLoad().find(e=>e.id===id);
-  if(!entry) return;
-  try{
-    DATA = parseCSV(entry.csvText, entry.filename);
-    _pendingCSV = null; // already saved
-    document.getElementById('upload-text').textContent = entry.filename;
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('header-sub').textContent = `${entry.name} · Marketing Leadership`;
-    showStatus('ok',`Loaded "${entry.name}" — ${DATA.totalItems} items`);
-    initDashboard(false);
-  } catch(err){ showStatus('err','Error loading: '+err.message); }
-}
-
-function deleteEntry(id){
-  closeContextMenu();
-  if(!confirm('Remove this dataset from the library?')) return;
-  libSave(libLoad().filter(e=>e.id!==id));
-  renderLanding();
-}
-
-function renameEntry(id){
-  closeContextMenu();
-  const lib=libLoad(), entry=lib.find(e=>e.id===id);
-  if(!entry) return;
-  const n=prompt('Rename dataset:',entry.name);
-  if(!n?.trim()) return;
-  entry.name=n.trim(); libSave(lib); renderLanding();
-}
-
-// ── SAVE MODAL ────────────────────────────────────────────────────────────────
-function openSaveModal(){
-  if(!DATA||!_pendingCSV) return;
-  document.getElementById('modal-name').value = (DATA.filename||'').replace(/\.csv$/i,'').replace(/_/g,' ');
-  document.getElementById('modal-board').value = '';
-  document.getElementById('save-modal-overlay').style.display='flex';
-  setTimeout(()=>document.getElementById('modal-name').select(),50);
-}
-function closeSaveModal(){ document.getElementById('save-modal-overlay').style.display='none'; }
-function handleOverlayClick(e){ if(e.target===document.getElementById('save-modal-overlay')) closeSaveModal(); }
-function confirmSave(){
-  const name  = document.getElementById('modal-name').value.trim();
-  const board = document.getElementById('modal-board').value.trim();
-  if(!name){ document.getElementById('modal-name').focus(); return; }
-  const lib = libLoad();
-  const entry = {
-    id:'ds_'+Date.now(), name, board,
-    filename: _pendingFilename||DATA.filename,
-    addedAt: new Date().toISOString(),
-    csvText: _pendingCSV,
-    summary:{ items:DATA.totalItems, reworkRate:DATA.reworkRate, topStatus:DATA.statusOrder[0], months:DATA.monthOrder }
-  };
-  if(!libSave([...lib, entry])) return;
-  _pendingCSV = null;
-  closeSaveModal();
-  document.getElementById('save-lib-btn').style.display='none';
-  showStatus('ok',`"${name}" saved to library`);
-}
-
-// ── FILE UPLOAD ───────────────────────────────────────────────────────────────
-function handleFileUpload(input){
+function handleFile(slotId, input) {
   const file = input.files[0];
-  if(!file) return;
+  if (!file) return;
+  const slot = document.getElementById('slot-' + slotId);
+  slot.querySelector('.upload-slot-status').textContent = '⏳ Reading…';
+  slot.className = 'upload-slot';
 
-  function tryParse(csvText){
-    DATA = parseCSV(csvText, file.name);
-    _pendingCSV = csvText; _pendingFilename = file.name;
-    document.getElementById('upload-text').textContent = file.name;
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('header-sub').textContent = `${file.name} · Marketing Leadership`;
-    showStatus('ok',`Loaded ${file.name} — ${DATA.totalItems} items, ${DATA.statusOrder.length} statuses`);
-    initDashboard(true);
-  }
-
-  const r1 = new FileReader();
-  r1.onload = e => {
+  const reader = new FileReader();
+  reader.onload = e => {
     try {
-      tryParse(e.target.result);
+      const data = new Uint8Array(e.target.result);
+      const wb   = XLSX.read(data, { type: 'array' });
+      pendingFiles[slotId] = { wb, name: file.name };
+      slot.classList.add('loaded');
+      slot.querySelector('.upload-slot-status').textContent = '✓ ' + file.name;
     } catch(err) {
-      const r2 = new FileReader();
-      r2.onload = e2 => {
-        try { tryParse(e2.target.result); }
-        catch(err2){ showStatus('err','Parse error: '+err2.message); console.error(err2); }
-      };
-      r2.readAsText(file, 'windows-1252');
-    }
-  };
-  r1.readAsText(file, 'UTF-8');
-}
-
-function showStatus(type,msg){
-  const el=document.getElementById('parse-status');
-  el.className=type; el.textContent=msg;
-  el.style.display='block';
-  setTimeout(()=>{el.style.display='none';},7000);
-}
-
-// ── INIT DASHBOARD ────────────────────────────────────────────────────────────
-function initDashboard(showSaveBtn){
-  document.getElementById('landing').style.display='none';
-  document.getElementById('main-content').style.display='';
-  document.getElementById('filter-bar').style.display='';
-  document.getElementById('back-btn').style.display='flex';
-  document.getElementById('save-lib-btn').style.display = showSaveBtn ? 'flex' : 'none';
-  SC = {...DEFAULT_SC};
-  selectedStatuses = new Set(DATA.statusOrder);
-  ag='all'; am='all'; tableSortMode='total-desc'; sortMode='desc';
-  buildGroupPills(); buildMonthPills(); buildDropdown();
-  renderAll();
-}
-
-// ── GROUP / MONTH PILLS ───────────────────────────────────────────────────────
-function buildGroupPills(){
-  const el=document.getElementById('group-pills');
-  el.innerHTML=`<button class="pill active" data-group="all">All Groups</button>`+DATA.groups.map(g=>`<button class="pill" data-group="${safeHtml(g)}">${safeHtml(g)}</button>`).join('');
-  el.addEventListener('click',e=>{
-    const btn=e.target.closest('[data-group]'); if(!btn) return;
-    ag=btn.dataset.group;
-    el.querySelectorAll('[data-group]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    btn.classList.add('active');
-    renderAll();
-  });
-}
-function buildMonthPills(){
-  const el=document.getElementById('month-pills');
-  el.innerHTML=`<button class="pill active-b" data-month="all">All Months</button>`+DATA.monthOrder.map(m=>`<button class="pill" data-month="${safeHtml(m)}">${safeHtml(m)}</button>`).join('');
-  el.addEventListener('click',e=>{
-    const btn=e.target.closest('[data-month]'); if(!btn) return;
-    am=btn.dataset.month;
-    el.querySelectorAll('[data-month]').forEach(b=>b.classList.remove('active','active-b','active-p'));
-    btn.classList.add(am==='all'?'active-b':'active');
-    renderAll();
-  });
-}
-
-function parseCSV(text, filename) {
-  function parseRow(line) {
-    const cells = []; let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
-      else cur += c;
-    }
-    cells.push(cur.trim());
-    return cells;
-  }
-
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-
-  const HEADER_SIGNAL = ["Item's name", "Last activity date", "Who made the change"];
-  let headerIdx = 0;
-  for (let i = 0; i < Math.min(lines.length, 20); i++) {
-    if (HEADER_SIGNAL.some(s => lines[i].includes(s))) { headerIdx = i; break; }
-  }
-  const cleanLines = lines.slice(headerIdx).filter(l => l.trim());
-
-  if (cleanLines[0].charCodeAt(0) === 0xFEFF || cleanLines[0].startsWith('\uFEFF')) cleanLines[0] = cleanLines[0].slice(1);
-  const headers = parseRow(cleanLines[0]).map(h => h.replace(/^\uFEFF/,'').trim());
-
-  const col = h => { const i = headers.findIndex(x => x === h); return i; };
-  const iName   = col("Item's name");
-  const iFrom   = col("From");
-  const iTo     = col("To");
-  const iMins   = col("Total time diff (minutes)");
-  const iMonth  = col("Month");
-  const iGroup  = col("Group name");
-  const iType   = col("Type");
-  const iName2  = col("Name");
-
-  if (iName === -1 || iFrom === -1) throw new Error("Required columns not found. Make sure this is a Monday.com Activity Log CSV.");
-
-  const rows = cleanLines.slice(1).map(l => parseRow(l));
-  const statusRows = rows.filter(r => r[iType] === 'color' && r[iName2] === 'Status');
-
-  if (!statusRows.length) throw new Error("No Status change rows found (Type='color', Name='Status').");
-
-  const itemMap = {};
-  const allGroups = new Set(), allMonths = new Set(), allStatuses = new Set();
-
-  for (const r of statusRows) {
-    const item  = r[iName];
-    const from  = r[iFrom];
-    const to    = r[iTo];
-    const mins  = parseFloat(r[iMins]) || 0;
-    const month = r[iMonth] || 'Unknown';
-    const group = r[iGroup] || 'Unknown';
-    if (!item || !from) continue;
-    if (!itemMap[item]) itemMap[item] = { group, month, statuses:{}, transitions:[], rework:false };
-    const d = itemMap[item];
-    d.statuses[from] = (d.statuses[from]||0) + mins;
-    d.transitions.push({from, to, mins});
-    allGroups.add(group); allMonths.add(month); allStatuses.add(from);
-    if (to) allStatuses.add(to);
-  }
-
-  let reworkCount = 0;
-  const reworkItems = new Set();
-  for (const [name, d] of Object.entries(itemMap)) {
-    const seen = new Set();
-    for (const t of d.transitions) {
-      if (seen.has(t.from)) { d.rework = true; break; }
-      seen.add(t.from);
-    }
-    if (d.rework) { reworkCount++; reworkItems.add(name); }
-  }
-
-  const statusTotals = {};
-  for (const d of Object.values(itemMap)) for (const [s,m] of Object.entries(d.statuses)) statusTotals[s] = (statusTotals[s]||0)+m;
-  const statusOrder = Object.keys(statusTotals).sort((a,b)=>statusTotals[b]-statusTotals[a]);
-
-  const MONTH_KNOWN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const iDate = col("Last activity date & time");
-  const monthFirstSeen = {};
-  for (const r of rows) {
-    const month = r[iMonth];
-    if (!month) continue;
-    let ts = Infinity;
-    if (iDate !== -1 && r[iDate]) {
-      const raw = r[iDate].replace(/\s+/g,' ').trim();
-      const parts = raw.match(/(\d+)\/(\d+)\/(\d+)/);
-      if (parts) {
-        const d1 = new Date(`${parts[3]}-${parts[2].padStart(2,'0')}-${parts[1].padStart(2,'0')}`);
-        const d2 = new Date(`${parts[3]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`);
-        ts = (!isNaN(d1) ? d1 : d2).getTime();
+      // Try as plain text (CSV)
+      try {
+        const text = new TextDecoder().decode(data);
+        pendingFiles[slotId] = { text, name: file.name };
+        slot.classList.add('loaded');
+        slot.querySelector('.upload-slot-status').textContent = '✓ ' + file.name;
+      } catch(err2) {
+        slot.classList.add('error');
+        slot.querySelector('.upload-slot-status').textContent = '✗ Could not read file';
       }
     }
-    if (!(month in monthFirstSeen) || ts < monthFirstSeen[month]) monthFirstSeen[month] = ts;
-  }
+    updateRefreshBtn();
+  };
+  reader.readAsArrayBuffer(file);
+}
 
-  const monthOrder = [...allMonths].sort((a, b) => {
-    const ta = monthFirstSeen[a] ?? Infinity;
-    const tb = monthFirstSeen[b] ?? Infinity;
-    if (ta !== tb) return ta - tb;
-    return MONTH_KNOWN.indexOf(a) - MONTH_KNOWN.indexOf(b);
+function updateRefreshBtn() {
+  const hasAny = Object.keys(pendingFiles).length > 0;
+  document.getElementById('refreshBtn').disabled = !hasAny;
+  const count = Object.keys(pendingFiles).length;
+  document.getElementById('uploadNote').textContent =
+    hasAny
+      ? `${count} file${count>1?'s':''} ready. Channels without new files keep current values.`
+      : 'Upload at least one file to refresh. Partial uploads OK.';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PARSERS  — mirror the Python logic used to initially calculate KPIs
+// ═══════════════════════════════════════════════════════════════════
+
+function parseGoogleAds(wb) {
+  // CSV comes in as single-sheet workbook via XLSX; skip first 2 rows (title + date range)
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+  // Find header row (contains 'Day')
+  let hdrIdx = rows.findIndex(r => r.some(c => String(c).trim() === 'Day'));
+  if (hdrIdx < 0) hdrIdx = 1;
+  const hdrs = rows[hdrIdx].map(c => String(c).trim());
+  const data = rows.slice(hdrIdx+1).filter(r => r.some(c => c !== ''));
+
+  const idx = n => hdrs.indexOf(n);
+  const num = v => parseFloat(String(v).replace(/[$,%]/g,'').replace(/,/g,'')) || 0;
+
+  let totals = { Search:{cost:0,clicks:0,sv:0}, 'Performance Max':{cost:0,clicks:0,sv:0}, 'Demand Gen':{cost:0,clicks:0,sv:0} };
+  data.forEach(row => {
+    const type = String(row[idx('Campaign type')]||'').trim();
+    if (!totals[type]) return;
+    totals[type].cost   += num(row[idx('Cost')]);
+    totals[type].clicks += num(row[idx('Clicks')]);
+    totals[type].sv     += num(row[idx('Store Visits')]);
   });
 
-  const items = Object.entries(itemMap).map(([name, d]) => ({
-    name,
-    group: d.group,
-    month: d.month,
-    statuses: Object.fromEntries(Object.entries(d.statuses).map(([s,m])=>[s,+(m/60).toFixed(2)])),
-    total_hours: +(Object.values(d.statuses).reduce((a,b)=>a+b,0)/60).toFixed(2),
-    rework: d.rework,
-    transitions: d.transitions
-  })).sort((a,b)=>b.total_hours-a.total_hours);
+  const s = totals['Search'];
+  const svr = s.clicks > 0 ? (s.sv / s.clicks * 100).toFixed(1) : null;
+  const cpc = s.clicks > 0 ? (s.cost / s.clicks).toFixed(2) : null;
+  const totalSpend = Object.values(totals).reduce((a,b) => a + b.cost, 0);
 
-  const transitions = {};
-  for (const d of Object.values(itemMap)) {
-    for (const t of d.transitions) {
-      if (!transitions[t.from]) transitions[t.from] = {};
-      transitions[t.from][t.to] = (transitions[t.from][t.to]||0)+1;
-    }
-  }
+  return { svr, cpc, totalSpend: totalSpend.toFixed(0), totals };
+}
 
-  const monthAvgs = {};
-  for (const m of monthOrder) {
-    monthAvgs[m] = {};
-    for (const s of statusOrder) {
-      const vals = items.filter(i=>i.month===m && i.statuses[s]!=null).map(i=>i.statuses[s]*60);
-      if (vals.length) monthAvgs[m][s] = {avg_hours:vals.reduce((a,b)=>a+b)/vals.length/60, n:vals.length};
-    }
-  }
+function parseSMS(wb) {
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+  // Forward-fill Month-Year
+  let lastMonth = '';
+  rows.forEach(r => {
+    if (r['Month - Year'] && String(r['Month - Year']).trim()) lastMonth = String(r['Month - Year']).trim();
+    else r['Month - Year'] = lastMonth;
+  });
+  // Group by month
+  const monthly = {};
+  rows.forEach(r => {
+    const m = r['Month - Year'];
+    if (!m) return;
+    if (!monthly[m]) monthly[m] = { out:0, del:0 };
+    monthly[m].out += parseFloat(r['Outgoing Messages'])||0;
+    monthly[m].del += parseFloat(r['Delivered Messages'])||0;
+  });
+  // Sort months and get latest non-partial
+  const sortable = Object.entries(monthly).map(([k,v]) => {
+    const d = new Date(k); return { label:k, out:v.out, del:v.del, date:isNaN(d)?0:d };
+  }).filter(x => x.out > 10000).sort((a,b) => b.date - a.date);
+  const latest = sortable[0];
+  const deliveryRate = latest ? (latest.del/latest.out*100).toFixed(1) : null;
+  return { latestMonth: latest?.label, outgoing: latest?.out, deliveryRate };
+}
 
-  const groups = [...allGroups];
-  const groupAvgs = {};
-  for (const g of groups) {
-    groupAvgs[g] = {};
-    for (const s of statusOrder) {
-      const vals = items.filter(i=>i.group===g && i.statuses[s]!=null).map(i=>i.statuses[s]*60);
-      if (vals.length) groupAvgs[g][s] = {avg_hours:vals.reduce((a,b)=>a+b)/vals.length/60, n:vals.length};
-    }
-  }
-
-  statusOrder.forEach((s,i) => { if (!SC[s]) SC[s] = COLOR_POOL[i % COLOR_POOL.length]; });
-  const grandTotal = Object.values(statusTotals).reduce((a,b)=>a+b,0);
-
+function parseEmail(wb) {
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:0 });
+  const journeyKw = ['welcome','thank you','survey','lof','recommend','birthday','service'];
+  let journey = { opened:0, clicked:0, sent:0 };
+  let eblast  = { opened:0, clicked:0, sent:0 };
+  rows.forEach(r => {
+    const tmpl = String(r['Template']||'').toLowerCase();
+    const isJourney = journeyKw.some(k => tmpl.includes(k));
+    const bucket = isJourney ? journey : eblast;
+    bucket.opened  += parseFloat(r['Opened'])||0;
+    bucket.clicked += parseFloat(r['Clicked'])||0;
+    bucket.sent    += parseFloat(r['Sent'])||0;
+  });
+  const ctor = b => b.opened > 0 ? (b.clicked/b.opened*100).toFixed(2) : null;
   return {
-    filename,
-    items,
-    statusOrder,
-    statusTotals,
-    grandTotal,
-    monthOrder,
-    monthAvgs,
-    groupAvgs,
-    groups,
-    transitions,
-    totalItems: items.length,
-    reworkCount,
-    reworkItems,
-    reworkRate: reworkCount / items.length
+    journeyCTOR: ctor(journey),
+    eblastCTOR:  ctor(eblast),
+    totalSent:   (journey.sent + eblast.sent)
   };
 }
 
-// ── COMPUTED AVGS (respects filters) ─────────────────────────────────────────
-function computeAvgs(gf, mf) {
-  const f = DATA.items.filter(i => (gf==='all'||i.group===gf) && (mf==='all'||i.month===mf));
-  if (!f.length) return {};
-  const t={}, c={};
-  for (const i of f) for (const [s,h] of Object.entries(i.statuses)) { t[s]=(t[s]||0)+h*60; c[s]=(c[s]||0)+1; }
-  const o={};
-  for (const s of DATA.statusOrder) if (t[s]) o[s]={avg_hours:t[s]/c[s]/60, n:c[s]};
-  return o;
-}
-
-function filteredItems() {
-  return DATA.items.filter(i => {
-    if (ag!=='all' && i.group!==ag) return false;
-    if (am!=='all' && i.month!==am) return false;
-    if (selectedStatuses.size < DATA.statusOrder.length) {
-      if (!Object.keys(i.statuses).some(s=>selectedStatuses.has(s)&&i.statuses[s]>0)) return false;
-    }
-    return true;
+function parseDripDrop(wb) {
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:0 });
+  let totalCards = 0, totalResponses = 0;
+  rows.forEach(r => {
+    totalCards     += parseFloat(r['Cards Mailed'])||0;
+    totalResponses += parseFloat(r['Household Responses'])||0;
   });
+  const hhRR = totalCards > 0 ? (totalResponses/totalCards*100).toFixed(2) : null;
+  return { totalCards: totalCards.toFixed(0), totalResponses: totalResponses.toFixed(0), hhRR };
 }
 
-function sortedItems(items) {
-  const copy = [...items];
-  const mo = DATA.monthOrder;
-  switch(tableSortMode) {
-    case 'total-desc': return copy.sort((a,b)=>b.total_hours-a.total_hours);
-    case 'total-asc':  return copy.sort((a,b)=>a.total_hours-b.total_hours);
-    case 'name-asc':   return copy.sort((a,b)=>a.name.localeCompare(b.name));
-    case 'month-asc':  return copy.sort((a,b)=>mo.indexOf(a.month)-mo.indexOf(b.month));
-    case 'rework':     return copy.sort((a,b)=>(b.rework?1:0)-(a.rework?1:0)||b.total_hours-a.total_hours);
-    default:           return copy;
-  }
+function parseWebGA4(wb) {
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:0 });
+  const byChannel = {};
+  rows.forEach(r => {
+    const ch = String(r['Default channel group']||r[Object.keys(r)[0]]||'Unknown').trim();
+    byChannel[ch] = (byChannel[ch]||0) + (parseFloat(r['Sessions'])||0);
+  });
+  const total = Object.values(byChannel).reduce((a,b) => a+b, 0);
+  const organic = byChannel['Organic Search']||0;
+  const paid    = byChannel['Paid Search']||0;
+  return { total, organic, paid, byChannel };
 }
 
-// ── KPI DRILLDOWNS ────────────────────────────────────────────────────────────
-function _kpiHeader(title, subtitle, color){
-  return `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
-      <div>
-        <div class="pname" style="margin:0;padding:0">${safeHtml(title)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${safeHtml(subtitle)}</div>
-      </div>
-    </div>
-  `;
-}
+// ═══════════════════════════════════════════════════════════════════
+// APPLY UPLOADS — run parsers, update CHANNELS, re-render
+// ═══════════════════════════════════════════════════════════════════
+function applyUploads() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
 
-function _statusTimeTotalsForItems(items){
-  const totals = {}; // minutes
-  for(const it of items){
-    for(const [s,h] of Object.entries(it.statuses)){
-      totals[s] = (totals[s]||0) + (h*60);
+  setTimeout(() => { // allow UI to update
+    const ch = id => CHANNELS.find(c => c.id === id);
+    const fmt = n => n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? Math.round(n/1e3)+'K' : String(Math.round(n));
+
+    try {
+      // ── Google Ads ──
+      if (pendingFiles['google-ads']) {
+        const f = pendingFiles['google-ads'];
+        const wb = f.wb || XLSX.read(f.text, { type:'string' });
+        const r = parseGoogleAds(wb);
+        const c = ch('paid-search');
+        if (r.svr !== null) {
+          const svrNum = parseFloat(r.svr);
+          c.current = r.svr + '%';
+          c.pct     = Math.min(100, Math.round(svrNum / 20 * 100));
+          c.status  = svrNum >= 20 ? 'green' : svrNum >= 10 ? 'yellow' : 'red';
+          c.note    = `Search SVR ${r.svr}% on $${Number(r.totalSpend).toLocaleString()} total spend. CPC $${r.cpc}.`;
+        }
+      }
+
+      // ── SMS ──
+      if (pendingFiles['cinch-sms']) {
+        const r = parseSMS(pendingFiles['cinch-sms'].wb);
+        const c = ch('sms');
+        if (r.outgoing) {
+          c.note = `${fmt(r.outgoing)} outgoing messages (${r.latestMonth}). Delivery rate: ${r.deliveryRate}%.`;
+        }
+        // opt-in rate stays manual — no opt-in column in export
+      }
+
+      // ── Email ──
+      if (pendingFiles['cinch-email']) {
+        const r = parseEmail(pendingFiles['cinch-email'].wb);
+        const c = ch('email');
+        if (r.journeyCTOR && r.eblastCTOR) {
+          const jNum = parseFloat(r.journeyCTOR), eNum = parseFloat(r.eblastCTOR);
+          c.current = `${r.journeyCTOR}% / ${r.eblastCTOR}%`;
+          const jPct = Math.min(100, Math.round(jNum / 2.1 * 100));
+          const ePct = Math.min(100, Math.round(eNum / 1.25 * 100));
+          c.pct    = Math.round((jPct + ePct) / 2);
+          c.status = c.pct >= 90 ? 'green' : c.pct >= 60 ? 'yellow' : 'red';
+          c.note   = `Journey CTOR ${r.journeyCTOR}% (target 2.1%). Eblast ${r.eblastCTOR}% (target 1.25%). ${fmt(r.totalSent)} total sends.`;
+        }
+      }
+
+      // ── Direct Mail ──
+      if (pendingFiles['dripdrop']) {
+        const r = parseDripDrop(pendingFiles['dripdrop'].wb);
+        const c = ch('direct-mail');
+        if (r.hhRR !== null) {
+          const rrNum = parseFloat(r.hhRR);
+          c.current = r.hhRR + '%';
+          c.pct     = Math.min(100, Math.round(rrNum / 2.75 * 100));
+          c.status  = rrNum >= 2.75 ? 'green' : rrNum >= 2.0 ? 'yellow' : 'red';
+          c.note    = `${Number(r.totalResponses).toLocaleString()} HH responses on ${Number(r.totalCards).toLocaleString()} cards mailed (${r.hhRR}% overall). Separate new vs existing HH for target comparison.`;
+        }
+      }
+
+      // ── Web GA4 ──
+      if (pendingFiles['web-ga4']) {
+        const r = parseWebGA4(pendingFiles['web-ga4'].wb);
+        const c = ch('web');
+        if (r.total > 0) {
+          c.current = fmt(r.total);
+          c.note    = `Organic Search ${fmt(r.organic)} (${Math.round(r.organic/r.total*100)}%). Paid Search ${fmt(r.paid)} (${Math.round(r.paid/r.total*100)}%).`;
+        }
+      }
+
+    } catch(err) {
+      console.error('Parse error:', err);
     }
-  }
-  return totals;
+
+    // Re-render
+    renderKpiCards();
+    renderOverviewRows();
+    setMeta();
+
+    // Update button and close panel
+    btn.textContent = '✓ Dashboard Refreshed';
+    btn.style.background = 'var(--green)';
+    document.getElementById('uploadNote').textContent =
+      'Dashboard updated from uploaded files. Upload new files any time.';
+
+    // Reset slots visually after 3s, keep panel open
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = 'Apply & Refresh Dashboard';
+      btn.style.background = '';
+    }, 3000);
+
+  }, 50);
 }
 
-function _statusStats(status, items){
-  const vals = items.map(i => (i.statuses[status]||0)).filter(v=>v>0);
-  if(!vals.length) return null;
-  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-  return {
-    n: vals.length,
-    avg,
-    med: median(vals),
-    p90: percentile(vals, 90)
-  };
-}
-
-function _rankedItemsByStatus(status, items){
-  const withS = items.filter(i => (i.statuses[status]||0) > 0);
-  return withS.sort((a,b)=>(b.statuses[status]||0)-(a.statuses[status]||0));
-}
-
-function _simpleBars(rows, maxVal, colorFor){
-  return rows.map(r=>{
-    const w = maxVal ? (r.value/maxVal*100) : 0;
-    const col = colorFor(r);
-    const hint = r.hint ? `<span class="sn">${safeHtml(r.hint)}</span>` : '';
+// ═══════════════════════════════════════════════════════════════════
+// RENDER — KPI Cards
+// ═══════════════════════════════════════════════════════════════════
+function renderKpiCards() {
+  const grid = document.getElementById('summaryKpiGrid');
+  grid.innerHTML = CHANNELS.map(ch => {
+    const deltaHtml = ch.pct > 0
+      ? `<span class="kpi-delta ${ch.pct >= 90 ? 'delta-pos' : ch.pct >= 60 ? 'delta-neu' : 'delta-neg'}">${ch.pct}% to target</span>`
+      : `<span class="kpi-delta delta-neu">Pending data</span>`;
     return `
-      <div class="srow" style="grid-template-columns:152px 1fr 88px; cursor:${r.onClick?'pointer':'default'}" ${r.onClick?`onclick="${r.onClick}"`:''}>
-        <div class="sname">${safeHtml(r.label)}</div>
-        <div class="btrack"><div class="bfill" style="width:${w.toFixed(1)}%;background:${col}"></div></div>
-        <div class="sval">${safeHtml(r.display)}${hint}</div>
-      </div>
-    `;
+      <div class="kpi-card ${ch.status}" onclick="showPage('${ch.id}')" title="Click to view ${ch.name} detail">
+        <div class="kpi-channel">${ch.name}</div>
+        <div class="kpi-label">${ch.primaryKpi}</div>
+        <div class="kpi-value">${ch.current}</div>
+        <div class="kpi-meta">
+          <span class="kpi-target">Target: ${ch.target}</span>
+          ${deltaHtml}
+        </div>
+        <div class="kpi-owner">Owner: ${ch.owner} · ${ch.indicator}</div>
+      </div>`;
   }).join('');
 }
 
-function showKPIDrill(key){
-  if(!DATA) return;
-  const items = filteredItems();
-  if(!items.length){
-    _setPanelContent(_kpiHeader('No items in current view','Adjust filters to see KPI drilldowns.','var(--muted)') + `<div class="no-r">No data</div>`, false);
+// ═══════════════════════════════════════════════════════════════════
+// RENDER — Overview Rows
+// ═══════════════════════════════════════════════════════════════════
+function renderOverviewRows() {
+  const container = document.getElementById('overviewRows');
+  const colorMap = { green: 'var(--green)', yellow: 'var(--amber)', red: 'var(--fsa-red)', gray: 'var(--muted)' };
+  container.innerHTML = CHANNELS.map(ch => `
+    <div class="overview-row" onclick="showPage('${ch.id}')">
+      <div class="ov-status" style="background:${colorMap[ch.status]}"></div>
+      <div class="ov-channel">${ch.name}</div>
+      <div class="ov-kpi">${ch.primaryKpi}</div>
+      <div class="ov-value" style="color:${colorMap[ch.status]}">${ch.current}</div>
+      <div class="ov-target">${ch.target}</div>
+      <div class="ov-bar">
+        <div class="ov-fill" style="width:${ch.pct}%;background:${colorMap[ch.status]}"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAV + META
+// ═══════════════════════════════════════════════════════════════════
+const aiCache = {}; // cache so we don't re-call on every tab revisit
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  const tab  = document.getElementById('tab-' + id);
+  if (page) page.classList.add('active');
+  if (tab)  tab.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Trigger AI analysis for channel pages (not overview or hold pages)
+  const holdPages = ['paid-social', 'programmatic'];
+  if (id !== 'overview' && !holdPages.includes(id)) {
+    generateAnalysis(id);
+  }
+}
+
+function setMeta() {
+  const now = new Date();
+  document.getElementById('lastUpdated').textContent =
+    'Updated: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AI ANALYSIS — calls Anthropic API, renders 3-column summary
+// ═══════════════════════════════════════════════════════════════════
+async function generateAnalysis(channelId) {
+  // Don't re-fetch if already cached
+  if (aiCache[channelId]) {
+    renderAnalysis(channelId, aiCache[channelId]);
     return;
   }
 
-  const subtitle = `${items.length} item${items.length!==1?'s':''} · ${ag==='all'?'All groups':ag} · ${am==='all'?'All months':am}`;
-  let html = '';
+  const el = document.getElementById('ai-content-' + channelId);
+  if (!el) return;
 
-  if(key==='items'){
-    const groups = {};
-    const months = {};
-    let reworkN = 0;
-    for(const it of items){
-      groups[it.group] = (groups[it.group]||0)+1;
-      months[it.month] = (months[it.month]||0)+1;
-      if(it.rework) reworkN++;
-    }
-    const groupRows = Object.entries(groups).sort((a,b)=>b[1]-a[1]).map(([g,n])=>({label:g,value:n,display:String(n),hint:'items'}));
-    const monthRows = Object.entries(months).sort((a,b)=>b[1]-a[1]).map(([m,n])=>({label:m,value:n,display:String(n),hint:'items'}));
-    const maxG = Math.max(...groupRows.map(r=>r.value), 1);
-    const maxM = Math.max(...monthRows.map(r=>r.value), 1);
+  // Show spinner
+  el.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div>Generating analysis…</div>';
 
-    const totals = _statusTimeTotalsForItems(items);
-    const distinctStatuses = Object.keys(totals).length;
+  const ch = CHANNELS.find(c => c.id === channelId);
+  if (!ch) return;
 
-    html =
-      _kpiHeader('Items Analyzed', subtitle, 'var(--red)') +
-      `<div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Items</div>
-          <div class="bn-stat-val" style="color:var(--red)">${items.length}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Rework Rate</div>
-          <div class="bn-stat-val" style="color:var(--amber)">${pct(reworkN, items.length)}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Statuses Seen</div>
-          <div class="bn-stat-val" style="color:var(--text)">${distinctStatuses}</div>
-        </div>
-      </div>` +
-      `<div class="psec">Breakdown by Group</div>
-       <div class="pbars">${_simpleBars(groupRows, maxG, ()=>"var(--blue)")}</div>` +
-      `<div class="psec">Breakdown by Month</div>
-       <div class="pbars">${_simpleBars(monthRows, maxM, ()=>"var(--purple)")}</div>` +
-      `<div class="psec">Most Time-Consuming Items</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Click any row to open the item breakdown.</div>` +
-      `<div>${_rankedItemsByStatus('__total__', items).slice(0,12).map(it=>{
-        const ri = DATA.items.indexOf(it);
-        const h = it.total_hours;
-        const max = Math.max(...items.map(x=>x.total_hours), 1);
-        const w = (h/max*100).toFixed(1);
-        return `
-          <div class="bni-row" onclick="showPanel(${ri})">
-            <div class="bni-header">
-              <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${safeHtml(it.name)}</div>
-              <div class="bni-time" style="color:var(--red)">${fmt(h)}</div>
-            </div>
-            <div class="bni-meta">
-              <span class="mtag" style="font-size:10px">${safeHtml(it.group)} · ${safeHtml(it.month)}</span>
-              <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${w}%;background:var(--red)"></div></div>
-              <span class="bni-pct">${pct(h*60, items.reduce((s,x)=>s+x.total_hours*60,0))} of view</span>
-            </div>
-          </div>
-        `;
-      }).join('')}</div>`;
-    _setPanelContent(html, false);
-    return;
-  }
+  const prompt = `You are a senior marketing analyst for FullSpeed Automotive, a national quick-lube and auto service franchisor (Grease Monkey, SpeeDee, Kwik Kar). You are writing a concise executive-facing analysis for the CMO dashboard.
 
-  if(key==='topstatus_avg'){
-    const totals = _statusTimeTotalsForItems(items);
-    const topStatus = Object.entries(totals).sort((a,b)=>b[1]-a[1])[0]?.[0] || DATA.statusOrder[0];
-    const stats = _statusStats(topStatus, items);
-    const ranked = _rankedItemsByStatus(topStatus, items);
-    const maxH = ranked.length ? (ranked[0].statuses[topStatus]||0) : 1;
+Channel: ${ch.name}
+Vendor: ${ch.vendor}
+Primary KPI: ${ch.primaryKpi}
+Current Value: ${ch.current}
+Target: ${ch.target}
+Progress to Target: ${ch.pct}%
+Status: ${ch.status === 'green' ? 'On/Ahead of target' : ch.status === 'yellow' ? 'Needs attention' : ch.status === 'red' ? 'Below target' : 'Pending data'}
+Context: ${ch.note}
+Owner: ${ch.owner}
 
-    html =
-      _kpiHeader('Avg in Top Status', `${subtitle} · Top status: ${topStatus}`, 'var(--blue)') +
-      `<div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Avg in "${safeHtml(topStatus)}"</div>
-          <div class="bn-stat-val" style="color:var(--blue)">${stats?fmt(stats.avg):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Median</div>
-          <div class="bn-stat-val" style="color:var(--text)">${stats?.med!=null?fmt(stats.med):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">P90</div>
-          <div class="bn-stat-val" style="color:var(--amber)">${stats?.p90!=null?fmt(stats.p90):'—'}</div>
-        </div>
-      </div>` +
-      `<div class="psec">Why this matters</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
-         This is the stage consuming the most total time across the current view. Use it to target throughput improvements.
-       </div>` +
-      `<div class="psec">Items Ranked by Time in "${safeHtml(topStatus)}"</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a row for the item’s full status breakdown.</div>` +
-      `<div>${ranked.slice(0,18).map(it=>{
-        const ri = DATA.items.indexOf(it);
-        const h = it.statuses[topStatus]||0;
-        const w = (h/maxH*100).toFixed(1);
-        const pctOfItem = pct(h*60, Object.values(it.statuses).reduce((a,b)=>a+b,0)*60);
-        return `
-          <div class="bni-row" onclick="showPanel(${ri})">
-            <div class="bni-header">
-              <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${safeHtml(it.name)}</div>
-              <div class="bni-time" style="color:${statusColor(topStatus)}">${fmt(h)}</div>
-            </div>
-            <div class="bni-meta">
-              <span class="mtag" style="font-size:10px">${safeHtml(it.group)} · ${safeHtml(it.month)}</span>
-              <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${w}%;background:${statusColor(topStatus)}"></div></div>
-              <span class="bni-pct">${pctOfItem} of item</span>
-            </div>
-          </div>
-        `;
-      }).join('')}</div>` +
-      `<div style="margin-top:14px">
-        <button class="bn-back" onclick="showBottleneckPanel('${topStatus.replace(/'/g,"\\'")}', true)">View as Bottleneck Panel →</button>
-      </div>`;
+Write a 3-part analysis. Be specific, direct, and actionable. No fluff. Write in tight paragraphs, not bullet points.
 
-    _setPanelContent(html, false);
-    return;
-  }
+Respond ONLY with a valid JSON object in this exact format (no markdown, no code fences):
+{
+  "performance": "2-3 sentences assessing where the KPI stands, what the number means in business terms, and whether the trend is directionally positive or negative.",
+  "causes": "2-3 sentences on the most likely root causes behind this result. Be analytically specific — reference the data context, channel mechanics, and what FSA can and cannot control.",
+  "actions": "2-3 sentences with the highest-leverage concrete actions FSA should take to move this KPI. Specific, ownable, sequenced."
+}`;
 
-  if(key==='dominance'){
-    const totals = _statusTimeTotalsForItems(items);
-    const grand = Object.values(totals).reduce((a,b)=>a+b,0) || 1;
-    const top = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
-    const topStatus = top[0]?.[0] || DATA.statusOrder[0];
-    const topShare = pct(totals[topStatus]||0, grand);
-
-    const rows = top.slice(0,10).map(([s,mins])=>{
-      const share = Math.round(mins/grand*100);
-      return {
-        label: s,
-        value: share,
-        display: `${share}%`,
-        hint: `${fmt(mins/60)} total`,
-        onClick: `showBottleneckPanel('${s.replace(/'/g,"\\'")}', true)`
-      };
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
-    const max = Math.max(...rows.map(r=>r.value), 1);
 
-    html =
-      _kpiHeader('Top Status Dominance', `${subtitle} · Dominant: ${topStatus} (${topShare})`, 'var(--amber)') +
-      `<div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Dominant Status</div>
-          <div class="bn-stat-val" style="color:${statusColor(topStatus)}">${safeHtml(topStatus)}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Share of Time</div>
-          <div class="bn-stat-val" style="color:var(--amber)">${topShare}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Tracked Time</div>
-          <div class="bn-stat-val" style="color:var(--text)">${fmt(grand/60)}</div>
-        </div>
-      </div>` +
-      `<div class="psec">Time Share by Status</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a status to drill into the items causing that share.</div>
-       <div class="pbars">${_simpleBars(rows, max, r=>statusColor(r.label))}</div>`;
+    const data = await res.json();
+    const raw  = data.content?.map(b => b.text || '').join('') || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
 
-    _setPanelContent(html, false);
-    return;
-  }
+    aiCache[channelId] = parsed;
+    renderAnalysis(channelId, parsed);
 
-  if(key==='rfr'){
-    const status = 'Ready for Review';
-    const stats = _statusStats(status, items);
-    const ranked = _rankedItemsByStatus(status, items);
-    const maxH = ranked.length ? (ranked[0].statuses[status]||0) : 1;
-    const threshold = 24; // hours; pragmatic “shouldn’t linger” mark for review stage
-    const above = ranked.filter(i => (i.statuses[status]||0) >= threshold).length;
-
-    html =
-      _kpiHeader('Avg Ready for Review', `${subtitle} · Status: ${status}`, 'var(--purple)') +
-      `<div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Avg</div>
-          <div class="bn-stat-val" style="color:var(--purple)">${stats?fmt(stats.avg):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Median</div>
-          <div class="bn-stat-val" style="color:var(--text)">${stats?.med!=null?fmt(stats.med):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">≥ ${threshold}h</div>
-          <div class="bn-stat-val" style="color:var(--amber)">${stats?pct(above, stats.n):'—'}</div>
-        </div>
-      </div>` +
-      `<div class="psec">Interpretation</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
-         “Ready for Review” is often a handoff + attention bottleneck. The best lever is reviewer capacity and clearer acceptance criteria.
-       </div>` +
-      `<div class="psec">Items Waiting Longest</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a row for the item breakdown.</div>` +
-      `<div>${ranked.slice(0,18).map(it=>{
-        const ri = DATA.items.indexOf(it);
-        const h = it.statuses[status]||0;
-        const w = (h/maxH*100).toFixed(1);
-        const flag = h>=threshold ? `<span style="color:var(--amber);font-size:10px;font-weight:700;margin-left:6px">⚠</span>` : '';
-        return `
-          <div class="bni-row" onclick="showPanel(${ri})">
-            <div class="bni-header">
-              <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${safeHtml(it.name)}${flag}</div>
-              <div class="bni-time" style="color:${statusColor(status)}">${fmt(h)}</div>
-            </div>
-            <div class="bni-meta">
-              <span class="mtag" style="font-size:10px">${safeHtml(it.group)} · ${safeHtml(it.month)}</span>
-              <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${w}%;background:${statusColor(status)}"></div></div>
-              <span class="bni-pct">${pct(h*60, Object.values(it.statuses).reduce((a,b)=>a+b,0)*60)} of item</span>
-            </div>
-          </div>
-        `;
-      }).join('')}</div>` +
-      `<div style="margin-top:14px">
-        <button class="bn-back" onclick="showBottleneckPanel('${status.replace(/'/g,"\\'")}', true)">View as Bottleneck Panel →</button>
-      </div>`;
-
-    _setPanelContent(html, false);
-    return;
-  }
-
-  if(key==='approve'){
-    const status = 'Approved';
-    const stats = _statusStats(status, items);
-    const ranked = _rankedItemsByStatus(status, items);
-    const maxH = ranked.length ? (ranked[0].statuses[status]||0) : 1;
-
-    // practical KPI lens: time in Approved should be low; if high, it may mean “parking lot” after approval
-    const threshold = 12; // hours
-    const above = ranked.filter(i => (i.statuses[status]||0) >= threshold).length;
-
-    html =
-      _kpiHeader('Avg Time to Approve', `${subtitle} · Status: ${status}`, 'var(--green)') +
-      `<div class="bn-panel-summary" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Avg</div>
-          <div class="bn-stat-val" style="color:var(--green)">${stats?fmt(stats.avg):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">Median</div>
-          <div class="bn-stat-val" style="color:var(--text)">${stats?.med!=null?fmt(stats.med):'—'}</div>
-        </div>
-        <div class="bn-stat-box">
-          <div class="bn-stat-lbl">≥ ${threshold}h</div>
-          <div class="bn-stat-val" style="color:var(--amber)">${stats?pct(above, stats.n):'—'}</div>
-        </div>
-      </div>` +
-      `<div class="psec">Interpretation</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
-         “Approved” time should ideally be near-zero. If it’s high, items may be approved but not shipped—look for downstream scheduling constraints.
-       </div>` +
-      `<div class="psec">Items With Highest "${status}" Time</div>
-       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Click a row for the item breakdown.</div>` +
-      `<div>${ranked.slice(0,18).map(it=>{
-        const ri = DATA.items.indexOf(it);
-        const h = it.statuses[status]||0;
-        const w = (h/maxH*100).toFixed(1);
-        const flag = h>=threshold ? `<span style="color:var(--amber);font-size:10px;font-weight:700;margin-left:6px">⚠</span>` : '';
-        return `
-          <div class="bni-row" onclick="showPanel(${ri})">
-            <div class="bni-header">
-              <div class="bni-name">${it.rework?'<span class="bn-rework-dot"></span>':''}${safeHtml(it.name)}${flag}</div>
-              <div class="bni-time" style="color:${statusColor(status)}">${fmt(h)}</div>
-            </div>
-            <div class="bni-meta">
-              <span class="mtag" style="font-size:10px">${safeHtml(it.group)} · ${safeHtml(it.month)}</span>
-              <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${w}%;background:${statusColor(status)}"></div></div>
-              <span class="bni-pct">${pct(h*60, Object.values(it.statuses).reduce((a,b)=>a+b,0)*60)} of item</span>
-            </div>
-          </div>
-        `;
-      }).join('')}</div>` +
-      `<div style="margin-top:14px">
-        <button class="bn-back" onclick="showBottleneckPanel('${status.replace(/'/g,"\\'")}', true)">View as Bottleneck Panel →</button>
-      </div>`;
-
-    _setPanelContent(html, false);
-    return;
+  } catch(err) {
+    if (el) {
+      el.innerHTML = '<div class="ai-error">Analysis unavailable — check API connectivity.</div>';
+    }
   }
 }
 
-// ── REWORK BANNER ─────────────────────────────────────────────────────────────
-function renderReworkBanner() {
-  const fi = filteredItems();
-  const rw = fi.filter(i=>i.rework);
-  document.getElementById('rw-rate').textContent = pct(rw.length, fi.length);
-  document.getElementById('rw-items').textContent = `${rw.length} of ${fi.length} items in current view`;
-}
-
-// ── KPIs ──────────────────────────────────────────────────────────────────────
-function renderKPIs() {
-  const a = computeAvgs(ag,am), items = filteredItems();
-  document.getElementById('kv-items').textContent = items.length;
-  const gs = [...new Set(items.map(i=>i.group))];
-  document.getElementById('ks-items').textContent = gs.length===1 ? gs[0] : `Across ${gs.length} groups`;
-
-  const q = a['Creative Queue'];
-  document.getElementById('kv-queue').textContent = q ? fmt(q.avg_hours) : (a[DATA.statusOrder[0]] ? fmt(a[DATA.statusOrder[0]].avg_hours) : 'N/A');
-
-  const ftMins = items.reduce((s,i)=>s+Object.values(i.statuses).reduce((aa,bb)=>aa+bb,0)*60,0);
-  const topStatus = DATA.statusOrder[0];
-  const topMins = items.reduce((s,i)=>s+(i.statuses[topStatus]||0)*60,0);
-  document.getElementById('kv-dominance').textContent = pct(topMins,ftMins);
-
-  const rfr = a['Ready for Review'];
-  document.getElementById('kv-rfr').textContent = rfr ? fmt(rfr.avg_hours) : 'N/A';
-  document.getElementById('ks-rfr').textContent = rfr ? `${rfr.n} items` : '';
-
-  const ap = a['Approved'];
-  document.getElementById('kv-approve').textContent = ap ? fmt(ap.avg_hours) : 'N/A';
-}
-
-// ── BOTTLENECKS ───────────────────────────────────────────────────────────────
-function renderBottlenecks() {
-  const a = computeAvgs(ag,am);
-  const items = filteredItems();
-  const ftMins = items.reduce((s,i)=>s+Object.values(i.statuses).reduce((aa,bb)=>aa+bb,0)*60,0);
-  const sorted = DATA.statusOrder.filter(s=>a[s]).sort((x,y)=>a[y].avg_hours-a[x].avg_hours).slice(0,4);
-  document.getElementById('bottleneck-row').innerHTML = sorted.map((s,i) => {
-    const sMins = items.reduce((sum,it)=>sum+(it.statuses[s]||0)*60,0);
-    const share = pct(sMins,ftMins);
-    const labels = ['#1 Bottleneck','#2 Bottleneck','#3 Bottleneck','#4 Bottleneck'];
-    const col = statusColor(s);
-    return `<div class="bn-tag" style="border-left-color:${col}" onclick="showBottleneckPanel('${s.replace(/'/g,"\\'")}')">
+function renderAnalysis(channelId, data) {
+  const el = document.getElementById('ai-content-' + channelId);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="ai-body">
       <div>
-        <div class="bn-badge" style="color:${col}">${labels[i]}</div>
-        <div class="bn-name">${safeHtml(s)}</div>
-        <div class="bn-val">${fmt(a[s].avg_hours)} avg</div>
+        <div class="ai-section-label performance">Performance</div>
+        <div class="ai-text">${data.performance}</div>
       </div>
-      <div style="margin-left:8px;text-align:right">
-        <div class="bn-share">${share} of time</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:3px">${a[s].n} items</div>
-        <div class="bn-drill">View items →</div>
+      <div>
+        <div class="ai-section-label causes">Likely Causes</div>
+        <div class="ai-text">${data.causes}</div>
       </div>
-    </div>`;
-  }).join('');
-}
-
-// ── BOTTLENECK PANEL ──────────────────────────────────────────────────────────
-function showBottleneckPanel(status, pushCurrent=false) {
-  const col = statusColor(status);
-  const items = filteredItems().filter(i => i.statuses[status] != null && i.statuses[status] > 0);
-  if (!items.length) return;
-
-  const ranked = [...items].sort((a,b) => (b.statuses[status]||0) - (a.statuses[status]||0));
-  const maxH = ranked[0].statuses[status];
-  const totalH = ranked.reduce((s,i) => s+(i.statuses[status]||0), 0);
-  const avgH = totalH / ranked.length;
-  const reworkCount = ranked.filter(i => i.rework).length;
-
-  const rows = ranked.map(item => {
-    const ri = DATA.items.indexOf(item);
-    const h = item.statuses[status];
-    const gc = GC[item.group]||{bg:'#f3f4f6',text:'#374151',border:'#d1d5db'};
-    const gShort = item.group==='Creative Queue (Up Next)'?'CQ (Up Next)':item.group==='Creative Production'?'Prod':'Sandbox';
-    const pctOfMax = (h/maxH*100).toFixed(1);
-    const pctOfItem = pct(h*60, Object.values(item.statuses).reduce((a,b)=>a+b,0)*60);
-    return `<div class="bni-row" onclick="showPanel(${ri}, true)">
-      <div class="bni-header">
-        <div class="bni-name">${item.rework ? '<span class="bn-rework-dot"></span>' : ''}${safeHtml(item.name)}</div>
-        <div class="bni-time" style="color:${col}">${fmt(h)}</div>
-      </div>
-      <div class="bni-meta">
-        <span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border};font-size:10px;padding:1px 5px">${gShort}</span>
-        <span class="mtag" style="font-size:10px">${safeHtml(item.month)}</span>
-        <div class="bni-track" style="flex:1"><div class="bni-fill" style="width:${pctOfMax}%;background:${col}"></div></div>
-        <span class="bni-pct">${pctOfItem} of item</span>
+      <div>
+        <div class="ai-section-label actions">Recommended Actions</div>
+        <div class="ai-text">${data.actions}</div>
       </div>
     </div>`;
-  }).join('');
-
-  const html = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
-      <div class="pname" style="margin:0;padding:0">${safeHtml(status)}</div>
-    </div>
-    <div class="bn-panel-summary">
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">Items in Stage</div>
-        <div class="bn-stat-val" style="color:${col}">${ranked.length}</div>
-      </div>
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">Avg Time Here</div>
-        <div class="bn-stat-val" style="color:${col}">${fmt(avgH)}</div>
-      </div>
-      <div class="bn-stat-box">
-        <div class="bn-stat-lbl">With Rework</div>
-        <div class="bn-stat-val" style="color:var(--amber)">${reworkCount > 0 ? reworkCount : '—'}</div>
-      </div>
-    </div>
-    <div class="psec">Items Ranked by Time in "${safeHtml(status)}"</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
-      Click any row for its full status breakdown${reworkCount > 0 ? ' &nbsp;·&nbsp; <span style="color:var(--amber)">● rework detected</span>' : ''}
-    </div>
-    <div>${rows}</div>`;
-
-  _setPanelContent(html, !!pushCurrent);
 }
 
-// ── STATUS BARS ───────────────────────────────────────────────────────────────
-function renderBars() {
-  const a = computeAvgs(ag,am);
-  let ss = DATA.statusOrder.filter(s=>a[s]);
-  if (sortMode==='desc') ss=[...ss].sort((x,y)=>a[y].avg_hours-a[x].avg_hours);
-  const mx = Math.max(...ss.map(s=>a[s].avg_hours), 1);
-  const el = document.getElementById('overall-bars');
-  if (!ss.length) { el.innerHTML='<div class="no-r">No data</div>'; return; }
-  el.innerHTML = ss.map(s=>`
-    <div class="srow">
-      <div class="sname">${safeHtml(s)}</div>
-      <div class="btrack"><div class="bfill" style="width:${(a[s].avg_hours/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div>
-      <div class="sval">${fmt(a[s].avg_hours)}<span class="sn">n=${a[s].n}</span></div>
-    </div>`).join('');
-}
-
-function setSort(mode) {
-  sortMode = mode;
-  document.getElementById('sort-asc').classList.toggle('active', mode==='asc');
-  document.getElementById('sort-desc').classList.toggle('active', mode==='desc');
-  renderBars();
-}
-
-// ── CROSSHAIR PLUGIN ─────────────────────────────────────────────────────────
-const CrosshairPlugin = {
-  id:'crosshair',
-  afterDatasetsDraw(chart) {
-    const { ctx, tooltip, chartArea:{top,bottom} } = chart;
-    if (!tooltip?._active?.length) return;
-    const x = tooltip._active[0].element.x;
-    ctx.save();
-    ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom);
-    ctx.strokeStyle='rgba(200,16,46,0.5)'; ctx.lineWidth=1.5;
-    ctx.setLineDash([4,3]); ctx.stroke(); ctx.restore();
-  }
-};
-Chart.register(CrosshairPlugin);
-
-function baseTooltip(extraCbs={}) {
-  return { mode:'index', intersect:false, backgroundColor:'#fff', borderColor:'#e3e6eb', borderWidth:1, titleColor:'#1a1d23', bodyColor:'#3d4350', titleFont:{family:'Inter',size:12,weight:'600'}, bodyFont:{family:'Inter',size:11}, padding:12, boxPadding:4, usePointStyle:true, callbacks:{ label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`, ...extraCbs } };
-}
-
-// ── MONTH CHART ───────────────────────────────────────────────────────────────
-function renderMonthChart() {
-  const ctx = document.getElementById('month-chart').getContext('2d');
-  if (mcInst) mcInst.destroy();
-  const months = DATA.monthOrder;
-  const ranked = DATA.statusOrder.map(s=>({s,v:months.reduce((a,m)=>a+(DATA.monthAvgs[m]?.[s]?.avg_hours||0),0)})).sort((a,b)=>b.v-a.v).slice(0,6).map(x=>x.s);
-  mcInst = new Chart(ctx, {
-    type:'line',
-    data:{ labels:months, datasets:ranked.map(s=>({ label:s, data:months.map(m=>+(DATA.monthAvgs[m]?.[s]?.avg_hours||0).toFixed(1)), borderColor:statusColor(s), backgroundColor:statusColor(s)+'18', borderWidth:2, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:statusColor(s), pointBorderColor:'#fff', pointBorderWidth:2, tension:0.35, fill:false })) },
-    options:{ responsive:true, interaction:{mode:'index',intersect:false},
-      scales:{ x:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11}},grid:{color:'#f1f3f5'}}, y:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11},callback:v=>fmt(v)},grid:{color:'#f1f3f5'}} },
-      plugins:{ legend:{labels:{color:'#3d4350',font:{family:'Inter',size:11},boxWidth:10,padding:10}}, tooltip:baseTooltip({title:items=>`${items[0]?.label} · ${items.reduce((s,i)=>s+(DATA.monthAvgs[items[0]?.label]?.[ranked[i.datasetIndex]]?.n||0),0)} items`}) }
-    }
-  });
-}
-
-// ── GROUP CHART ───────────────────────────────────────────────────────────────
-function renderGroupChart() {
-  const ctx = document.getElementById('group-chart').getContext('2d');
-  if (gcInst) gcInst.destroy();
-  const groups = ag==='all' ? DATA.groups : [ag];
-  const allS = new Set(); groups.forEach(g=>Object.keys(DATA.groupAvgs[g]||{}).forEach(s=>allS.add(s)));
-  const labels = DATA.statusOrder.filter(s=>allS.has(s));
-  const gColors = {};
-  DATA.groups.forEach((g,i)=>{ gColors[g]=COLOR_POOL[i%COLOR_POOL.length]; });
-  gColors["Creative Production"]="#C8102E"; gColors["Creative Queue (Up Next)"]="#1d6fb8"; gColors["Tactical Plans Sandbox"]="#b45309";
-  const datasets = groups.map(g=>{
-    const a = am!=='all' ? computeAvgs(g,am) : DATA.groupAvgs[g]||{};
-    const col = gColors[g]||'#888';
-    const lbl = g.length>20 ? g.split(' ').slice(0,2).join(' ')+'…' : g;
-    return { label:lbl, data:labels.map(s=>+(a[s]?.avg_hours||0).toFixed(1)), backgroundColor:col+'28', borderColor:col, borderWidth:1.5, borderRadius:3, hoverBackgroundColor:col+'55' };
-  });
-  gcInst = new Chart(ctx, {
-    type:'bar', data:{labels,datasets},
-    options:{ responsive:true, interaction:{mode:'index',intersect:false},
-      scales:{ x:{ticks:{color:'#94a3b8',font:{family:'Inter',size:10},maxRotation:30},grid:{color:'#f1f3f5'}}, y:{ticks:{color:'#94a3b8',font:{family:'Inter',size:11},callback:v=>fmt(v)},grid:{color:'#f1f3f5'}} },
-      plugins:{ legend:{labels:{color:'#3d4350',font:{family:'Inter',size:11},boxWidth:10}},
-        tooltip:baseTooltip({title:items=>`Status: ${items[0]?.label}`, afterBody:items=>{ const vs=items.filter(i=>i.raw>0); if(vs.length<2)return[]; const f=vs.reduce((a,b)=>a.raw<b.raw?a:b),s=vs.reduce((a,b)=>a.raw>b.raw?a:b); return['',`⬇ Fastest: ${f.dataset.label} (${fmt(f.raw)})`,`⬆ Slowest: ${s.dataset.label} (${fmt(s.raw)})`]; }})
-      }
-    }
-  });
-}
-
-// ── TRANSITIONS ───────────────────────────────────────────────────────────────
-function renderTransitions() {
-  const statusIdx = {};
-  DATA.statusOrder.forEach((s,i)=>statusIdx[s]=i);
-  const sorted = Object.entries(DATA.transitions).map(([f,tos])=>({f,tos,tot:Object.values(tos).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.tot-a.tot).slice(0,9);
-  document.getElementById('trans-list').innerHTML = sorted.map(({f,tos})=>{
-    const mx=Math.max(...Object.values(tos));
-    const top=Object.entries(tos).sort((a,b)=>b[1]-a[1]).slice(0,4);
-    return `<div class="trow"><div class="tfrom">${safeHtml(f)}</div><div class="ttos">${top.map(([t,n])=>{
-      const isRework = (statusIdx[t]!==undefined && statusIdx[f]!==undefined && statusIdx[t]<statusIdx[f]) || t===f;
-      return `<div class="tto"><div class="tbar" style="width:${Math.max(6,n/mx*60)}px;background:${statusColor(t)}"></div><span style="color:${statusColor(t)};font-weight:500">${safeHtml(t)}</span>${isRework?'<span style="color:var(--amber);font-size:10px;margin-left:2px">↺</span>':''}<span class="tcnt">${n}×</span></div>`;
-    }).join('')}</div></div>`;
-  }).join('');
-}
-
-// ── TABLE SORT ────────────────────────────────────────────────────────────────
-function setTableSort(mode) {
-  tableSortMode = mode;
-  document.querySelectorAll('.tsort-btn').forEach(b=>b.classList.toggle('active',b.dataset.tsort===mode));
-  document.getElementById('ind-name').textContent  = mode==='name-asc'   ? '↑':'';
-  document.getElementById('ind-month').textContent = mode==='month-asc'  ? '↑':'';
-  document.getElementById('ind-total').textContent = mode==='total-desc' ? '↓':mode==='total-asc'?'↑':'';
-  renderItems();
-}
-
-// ── STATUS DROPDOWN ───────────────────────────────────────────────────────────
-function buildDropdown() {
-  const list = document.getElementById('dd-items-list');
-  list.innerHTML = DATA.statusOrder.map(s=>`
-    <div class="dd-item" onclick="toggleStatus('${s.replace(/'/g,"\\'")}',event)">
-      <input type="checkbox" id="chk-${s.replace(/\s/g,'_')}" ${selectedStatuses.has(s)?'checked':''} onclick="toggleStatus('${s.replace(/'/g,"\\'")}',event)">
-      <div class="dd-dot" style="background:${statusColor(s)}"></div>
-      <span>${safeHtml(s)}</span>
-    </div>`).join('');
-}
-function toggleStatus(s,e) {
-  e.stopPropagation();
-  if (selectedStatuses.has(s)) { if(selectedStatuses.size>1) selectedStatuses.delete(s); }
-  else selectedStatuses.add(s);
-  const chk=document.getElementById('chk-'+s.replace(/\s/g,'_'));
-  if(chk) chk.checked=selectedStatuses.has(s);
-  updateDropdownLabel(); renderItems();
-}
-function selectAllStatuses() { selectedStatuses=new Set(DATA.statusOrder); buildDropdown(); updateDropdownLabel(); renderItems(); }
-function clearAllStatuses()  { selectedStatuses=new Set([DATA.statusOrder[0]]); buildDropdown(); updateDropdownLabel(); renderItems(); }
-function updateDropdownLabel() {
-  const all=selectedStatuses.size===DATA.statusOrder.length;
-  document.getElementById('status-trigger-label').textContent = all ? 'Filter by Status' : `${selectedStatuses.size} Status${selectedStatuses.size!==1?'es':''} Selected`;
-  document.getElementById('status-trigger').classList.toggle('has-filter',!all);
-}
-function toggleDropdown() {
-  const m=document.getElementById('status-menu'), t=document.getElementById('status-trigger');
-  const open=m.classList.contains('open');
-  if(open){m.classList.remove('open');t.classList.remove('open');}
-  else{m.classList.add('open');t.classList.add('open');document.getElementById('dd-search-input').focus();}
-}
-function filterDropdownSearch(q) {
-  document.querySelectorAll('.dd-item').forEach(item=>{
-    item.style.display=item.querySelector('span').textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
-  });
-}
-document.addEventListener('click',e=>{
-  const wrap=document.getElementById('status-dropdown-wrap');
-  if(wrap&&!wrap.contains(e.target)){document.getElementById('status-menu').classList.remove('open');document.getElementById('status-trigger').classList.remove('open');}
-});
-
-// ── ITEMS TABLE ───────────────────────────────────────────────────────────────
-function renderItems() {
-  const items = sortedItems(filteredItems());
-  document.getElementById('item-count').textContent=`${items.length} item${items.length!==1?'s':''}`;
-  const tbody=document.getElementById('items-tbody');
-  if(!items.length){tbody.innerHTML=`<tr><td colspan="5" class="no-r">No items match current filters</td></tr>`;return;}
-  tbody.innerHTML=items.map(item=>{
-    const ri=DATA.items.indexOf(item);
-    const ss=Object.entries(item.statuses).sort((a,b)=>b[1]-a[1]);
-    const mx=Math.max(...ss.map(s=>s[1]), 1);
-    const sparks=ss.map(([s,h])=>`<div class="spark" style="height:${Math.max(3,Math.round(h/mx*18))}px;width:5px;background:${statusColor(s)};${!selectedStatuses.has(s)?'opacity:0.2':''}" title="${safeHtml(s)}: ${fmt(h)}"></div>`).join('');
-    const gc=GC[item.group]||{bg:'#f3f4f6',text:'#374151',border:'#d1d5db'};
-    const gShort=item.group==='Creative Queue (Up Next)'?'CQ (Up Next)':item.group==='Creative Production'?'Creative Prod':'Sandbox';
-    return `<tr onclick="showPanel(${ri})" class="${item.rework?'rework-row':''}">
-      <td class="iname">${safeHtml(item.name)}</td>
-      <td><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${safeHtml(gShort)}</span></td>
-      <td><span class="mtag">${safeHtml(item.month)}</span></td>
-      <td><div class="sparkrow">${sparks}</div></td>
-      <td class="itotal">${fmt(item.total_hours)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
-let _panelStack = [];
-
-function _setPanelContent(html, pushCurrent) {
-  const pc = document.getElementById('panel-content');
-  if (pushCurrent && pc.innerHTML.trim()) _panelStack.push(pc.innerHTML);
-  pc.innerHTML = html;
-  pc.scrollTop = 0;
-  document.getElementById('panel').classList.add('open');
-  document.getElementById('panel-overlay').classList.add('open');
-}
-
-function _panelBackBtn(label) {
-  return `<button class="bn-back" onclick="panelBack()">← ${safeHtml(label)}</button>`;
-}
-
-function panelBack() {
-  if (!_panelStack.length) return;
-  const pc = document.getElementById('panel-content');
-  pc.innerHTML = _panelStack.pop();
-  pc.scrollTop = 0;
-}
-
-function showPanel(i, fromBottleneck) {
-  const item = DATA.items[i];
-  const ss=Object.entries(item.statuses).sort((a,b)=>b[1]-a[1]);
-  const mx=Math.max(...ss.map(s=>s[1]), 1);
-  const gc=GC[item.group]||{bg:'#f3f4f6',text:'#374151',border:'#d1d5db'};
-  const transHtml = item.rework ? `
-    <div class="psec">Status Transition History</div>
-    <div class="rework-history">
-      ${(()=>{
-        const seen=new Set();
-        return item.transitions.map(({from:f,to:t})=>{
-          const isRework=seen.has(f);
-          seen.add(f);
-          return `<div class="rh-row"><span class="rh-from">${safeHtml(f)}</span><span class="rh-arrow">→</span><span class="rh-to">${safeHtml(t)}</span>${isRework?'<span class="rh-rework">↺ rework</span>':''}</div>`;
-        }).join('');
-      })()}
-    </div>` : '';
-  const backBtn = fromBottleneck ? _panelBackBtn('Back') : '';
-  const html = `
-    ${backBtn}
-    <div class="pname">${safeHtml(item.name)}</div>
-    <div class="pmeta"><span class="gtag" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">${safeHtml(item.group)}</span><span>·</span><span>${safeHtml(item.month)}</span></div>
-    ${item.rework?'<div class="prework-flag">↺ Rework Detected — this item re-entered one or more statuses</div>':''}
-    <div class="psec">Time Per Status</div>
-    <div class="pbars">${ss.map(([s,h])=>`<div class="pbrow"><div class="pbname">${safeHtml(s)}</div><div class="btrack"><div class="bfill" style="width:${(h/mx*100).toFixed(1)}%;background:${statusColor(s)}"></div></div><div class="pbval" style="color:${statusColor(s)}">${fmt(h)}</div></div>`).join('')}</div>
-    <div class="ptotal"><span>Total time tracked</span><strong>${fmt(item.total_hours)}</strong></div>
-    ${transHtml}`;
-  _setPanelContent(html, !!fromBottleneck);
-}
-
-function closePanel() {
-  document.getElementById('panel').classList.remove('open');
-  document.getElementById('panel-overlay').classList.remove('open');
-  _panelStack = [];
-}
-
-/* Click-out close */
-document.getElementById('panel-overlay').addEventListener('click', closePanel);
-
-/* ESC key close */
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    const isOpen = document.getElementById('panel')?.classList.contains('open');
-    if (isOpen) closePanel();
-  }
-});
-
-// ── RENDER ALL ────────────────────────────────────────────────────────────────
-function renderAll(){
-  renderReworkBanner(); renderKPIs(); renderBars();
-  renderGroupChart(); renderMonthChart();
-  renderTransitions(); renderBottlenecks(); renderItems();
-}
-
-// ── STARTUP ───────────────────────────────────────────────────────────────────
-goToLanding();
+// ── Init ──
+renderKpiCards();
+renderOverviewRows();
+setMeta();
 </script>
 </body>
 </html>
